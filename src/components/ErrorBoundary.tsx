@@ -43,99 +43,30 @@ export class ErrorBoundary extends Component<Props, State> {
 
       // Default error UI
       return (
-        <div
-          style={{
-            padding: "40px 20px",
-            textAlign: "center",
-            background: "rgba(239, 68, 68, 0.1)",
-            border: "1px solid rgba(239, 68, 68, 0.3)",
-            borderRadius: "12px",
-            margin: "20px",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "48px",
-              marginBottom: "16px",
-            }}
-          >
+        <div className="px-5 py-10 text-center bg-red-500/10 border border-red-500/30 rounded-xl m-5">
+          <div className="text-5xl mb-4">
             ⚠️
           </div>
-          <h2
-            style={{
-              fontSize: "20px",
-              fontWeight: 600,
-              color: "#ef4444",
-              marginBottom: "8px",
-            }}
-          >
+          <h2 className="text-xl font-semibold text-red-500 mb-2">
             Something went wrong
           </h2>
-          <p
-            style={{
-              fontSize: "14px",
-              color: "#9ca3af",
-              marginBottom: "20px",
-              maxWidth: "400px",
-              margin: "0 auto 20px",
-            }}
-          >
+          <p className="text-sm text-muted-foreground max-w-md mx-auto mb-5">
             An unexpected error occurred while loading this section. Please try
             again or refresh the page.
           </p>
           {this.state.error && (
-            <details
-              style={{
-                textAlign: "left",
-                background: "rgba(0, 0, 0, 0.2)",
-                padding: "12px",
-                borderRadius: "8px",
-                marginBottom: "20px",
-                maxWidth: "500px",
-                margin: "0 auto 20px",
-              }}
-            >
-              <summary
-                style={{
-                  cursor: "pointer",
-                  color: "#9ca3af",
-                  fontSize: "12px",
-                }}
-              >
+            <details className="text-left bg-black/20 p-3 rounded-lg max-w-lg mx-auto mb-5">
+              <summary className="cursor-pointer text-muted-foreground text-xs">
                 Error details
               </summary>
-              <pre
-                style={{
-                  marginTop: "8px",
-                  fontSize: "11px",
-                  color: "#ef4444",
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                }}
-              >
+              <pre className="mt-2 text-xs text-red-500 whitespace-pre-wrap break-words">
                 {this.state.error.message}
               </pre>
             </details>
           )}
           <button
             onClick={this.handleRetry}
-            style={{
-              background: "#ef4444",
-              color: "#ffffff",
-              padding: "10px 24px",
-              borderRadius: "20px",
-              border: "none",
-              cursor: "pointer",
-              fontWeight: 600,
-              fontSize: "14px",
-              transition: "background 0.2s",
-            }}
-            onMouseOver={(e) =>
-              (e.currentTarget.style.background = "#dc2626")
-            }
-            onMouseOut={(e) =>
-              (e.currentTarget.style.background = "#ef4444")
-            }
+            className="bg-red-500 text-white px-6 py-2.5 rounded-full border-none cursor-pointer font-semibold text-sm transition-colors hover:bg-red-600"
           >
             Try Again
           </button>
@@ -160,16 +91,8 @@ export const SectionErrorBoundary: React.FC<ErrorBoundaryWrapperProps> = ({
   return (
     <ErrorBoundary
       fallback={
-        <div
-          style={{
-            padding: "20px",
-            textAlign: "center",
-            background: "rgba(239, 68, 68, 0.05)",
-            border: "1px solid rgba(239, 68, 68, 0.2)",
-            borderRadius: "12px",
-          }}
-        >
-          <p style={{ color: "#9ca3af", fontSize: "14px" }}>
+        <div className="p-5 text-center bg-red-500/5 border border-red-500/20 rounded-xl">
+          <p className="text-muted-foreground text-sm">
             Unable to load {section}. Please refresh the page.
           </p>
         </div>
