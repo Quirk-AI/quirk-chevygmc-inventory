@@ -1,8 +1,7 @@
 import { useEffect, useCallback, useRef } from "react";
-import * as XLSX from "xlsx";
 import { InventoryRow, DealerSource } from "../types";
 import { useInventoryStore } from "../store/inventoryStore";
-import { INVENTORY_PATHS } from "../inventoryHelpers";
+import { excelInventoryService } from "../services/inventoryService";
 
 const STALE_TIME = 5 * 60 * 1000;
 const CACHE_TIME = 30 * 60 * 1000;
@@ -22,38 +21,8 @@ export function useInventoryLoader() {
   const setLastUpdated = useInventoryStore((s) => s.setLastUpdated);
   const setRefreshing = useInventoryStore((s) => s.setRefreshing);
   const selectedMake = useInventoryStore((s) => s.selectedMake);
-  
+
   const hasFetched = useRef<DealerSource | null>(null);
-
-  const parseArrayBuffer = useCallback((data: ArrayBuffer): InventoryRow[] => {
-    const workbook = XLSX.read(data, { type: "array" });
-    const sheetName = workbook.SheetNames[0];
-    if (!sheetName) throw new Error("No sheets found");
-    const worksheet = workbook.Sheets[sheetName];
-    if (!worksheet) throw new Error("Worksheet not found");
-
-    const rawData = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet);
-
-    return rawData
-      .filter((row) => row["Stock Number"] != null && String(row["Stock Number"]).trim() !== "")
-      .map((row) => ({
-        "Stock Number": String(row["Stock Number"] ?? ""),
-        Year: Number(row["Year"]) || 0,
-        Make: String(row["Make"] ?? ""),
-        Model: String(row["Model"] ?? ""),
-        "Exterior Color": String(row["Exterior Color"] ?? ""),
-        Trim: String(row["Trim"] ?? ""),
-        "Model Number": String(row["Model Number"] ?? ""),
-        Cylinders: Number(row["Cylinders"]) || 0,
-        Age: Number(row["Age"]) || 0,
-        MSRP: Number(row["MSRP"]) || 0,
-        Status: String(row["Category"] ?? ""),
-        VIN: String(row["VIN"] ?? ""),
-        Body: String(row["Body"] ?? ""),
-        "Body Type": String(row["Body Type"] ?? ""),
-        Category: String(row["Category"] ?? ""),
-      }));
-  }, []);
 
   const loadFromCache = useCallback((make: DealerSource): CachedData | null => {
     try {
@@ -92,14 +61,9 @@ export function useInventoryLoader() {
       }
     }
 
-    const inventoryPath = INVENTORY_PATHS[make];
-
     try {
-      const res = await fetch(inventoryPath);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.arrayBuffer();
-      const parsed = parseArrayBuffer(data);
-      
+      const parsed = await excelInventoryService.fetchInventory(make);
+
       setRows(parsed);
       setError(null);
       setLastUpdated(new Date());
@@ -112,7 +76,7 @@ export function useInventoryLoader() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [loadFromCache, parseArrayBuffer, saveToCache, setRows, setLoading, setStale, setError, setLastUpdated, setRefreshing, selectedMake]);
+  }, [loadFromCache, saveToCache, setRows, setLoading, setStale, setError, setLastUpdated, setRefreshing, selectedMake]);
 
   const refetch = useCallback(async () => {
     setRefreshing(true);

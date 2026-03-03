@@ -130,20 +130,20 @@ export const VirtualizedTable: FC<Props> = memo(({ rows, onRowClick }) => {
 
   return (
     <Card>
-      <CardContent className="p-0">
+      <CardContent className="p-0" role="table" aria-label="Vehicle inventory">
         {/* Fixed header */}
-        <div className="sticky top-0 z-10 bg-muted border-b">
+        <div className="sticky top-0 z-10 bg-muted border-b" role="rowgroup">
           <table className="w-full" style={{ tableLayout: "fixed" }}>
             <thead>
-              <tr>
-                <th className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "12%" }}>Stock #</th>
-                <th className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "8%" }}>Year</th>
-                <th className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "18%" }}>Model</th>
-                <th className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "14%" }}>Exterior</th>
-                <th className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "18%" }}>Trim</th>
-                <th className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "10%" }}>Body</th>
-                <th className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "8%" }}>Age</th>
-                <th className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "12%" }}>MSRP</th>
+              <tr role="row">
+                <th role="columnheader" className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "12%" }}>Stock #</th>
+                <th role="columnheader" className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "8%" }}>Year</th>
+                <th role="columnheader" className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "18%" }}>Model</th>
+                <th role="columnheader" className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "14%" }}>Exterior</th>
+                <th role="columnheader" className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "18%" }}>Trim</th>
+                <th role="columnheader" className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "10%" }}>Body</th>
+                <th role="columnheader" className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "8%" }}>Age</th>
+                <th role="columnheader" className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "12%" }}>MSRP</th>
               </tr>
             </thead>
           </table>

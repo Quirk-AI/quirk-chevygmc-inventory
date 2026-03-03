@@ -89,7 +89,7 @@ export const FiltersBar: FC<Props> = memo(({
         <div className="w-full md:w-auto md:min-w-[160px]">
           <label className={dealerLabelClass}>Choose Dealership</label>
           <Select value={selectedMake} onValueChange={(v) => onMakeChange(v as DealerSource)}>
-            <SelectTrigger className="h-9 md:h-10">
+            <SelectTrigger className="h-9 md:h-10" aria-label="Choose dealership">
               <SelectValue placeholder="Select dealership" />
             </SelectTrigger>
             <SelectContent>
@@ -106,7 +106,7 @@ export const FiltersBar: FC<Props> = memo(({
         <div className="flex-1 min-w-[80px] md:flex-none md:min-w-[100px]">
           <label className={labelClass}>Year</label>
           <Select value={filters.year} onValueChange={(v) => onChange({ year: v })}>
-            <SelectTrigger className="h-9 md:h-10">
+            <SelectTrigger className="h-9 md:h-10" aria-label="Filter by year">
               <SelectValue placeholder="All Years" />
             </SelectTrigger>
             <SelectContent>
@@ -123,11 +123,11 @@ export const FiltersBar: FC<Props> = memo(({
         {/* MAKE */}
         <div className="flex-1 min-w-[80px] md:flex-none md:min-w-[120px]">
           <label className={labelClass}>Make</label>
-          <Select 
-            value={filters.make || "ALL_MAKES"} 
+          <Select
+            value={filters.make || "ALL_MAKES"}
             onValueChange={(v) => onChange({ make: v === "ALL_MAKES" ? "" : v, model: "" })}
           >
-            <SelectTrigger className="h-9 md:h-10">
+            <SelectTrigger className="h-9 md:h-10" aria-label="Filter by make">
               <SelectValue placeholder="All Makes" />
             </SelectTrigger>
             <SelectContent>
@@ -144,11 +144,11 @@ export const FiltersBar: FC<Props> = memo(({
         {/* MODEL */}
         <div className="flex-1 min-w-[80px] md:flex-none md:min-w-[140px]">
           <label className={labelClass}>Model</label>
-          <Select 
-            value={filters.model || "ALL_MODELS"} 
+          <Select
+            value={filters.model || "ALL_MODELS"}
             onValueChange={(v) => onChange({ model: v === "ALL_MODELS" ? "" : v })}
           >
-            <SelectTrigger className="h-9 md:h-10">
+            <SelectTrigger className="h-9 md:h-10" aria-label="Filter by model">
               <SelectValue placeholder="All Models" />
             </SelectTrigger>
             <SelectContent>
@@ -174,6 +174,7 @@ export const FiltersBar: FC<Props> = memo(({
             value={filters.stockNumber}
             onChange={(e) => onChange({ stockNumber: e.target.value })}
             className="h-9 md:h-10"
+            aria-label="Search by stock number"
           />
         </div>
 

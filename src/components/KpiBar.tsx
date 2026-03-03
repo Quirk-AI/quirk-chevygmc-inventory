@@ -22,16 +22,19 @@ interface KpiCardProps {
   onClick?: () => void;
   highlight?: boolean;
   className?: string;
+  ariaLabel?: string;
 }
 
-const KpiCard: FC<KpiCardProps> = ({ label, value, icon, onClick, highlight, className }) => (
-  <Card 
+const KpiCard: FC<KpiCardProps> = ({ label, value, icon, onClick, highlight, className, ariaLabel }) => (
+  <Card
     className={cn(
       "cursor-pointer transition-all hover:shadow-md hover:border-primary/50",
       highlight && "border-primary bg-primary/5",
       className
     )}
     onClick={onClick}
+    role="button"
+    aria-label={ariaLabel ?? `${label}: ${value}`}
   >
     <CardContent className="p-4">
       <div className="flex flex-col items-center text-center">
@@ -72,24 +75,28 @@ export const KpiBar: FC<Props> = memo(({
         icon={<Car className="h-5 w-5" />}
         onClick={onTotalClick}
         highlight
+        ariaLabel={`View all ${totalVehicles} vehicles in inventory`}
       />
       <KpiCard
         label="New Arrivals"
         value={totalNew}
         icon={<Package className="h-5 w-5" />}
         onClick={onNewClick}
+        ariaLabel={`View ${totalNew} new arrivals`}
       />
       <KpiCard
         label="In Transit"
         value={inTransit}
         icon={<TrendingUp className="h-5 w-5" />}
         onClick={onTransitClick}
+        ariaLabel={`View ${inTransit} vehicles in transit`}
       />
       <KpiCard
         label="In Stock"
         value={inStock}
         icon={<Warehouse className="h-5 w-5" />}
         onClick={onInStockClick}
+        ariaLabel={`View ${inStock} vehicles in stock`}
       />
     </div>
   );

@@ -5,12 +5,19 @@ import "./styles/theme.css";
 import { useInventoryStore } from "./store/inventoryStore";
 import { useInventoryLoader } from "./hooks/useInventoryLoader";
 import { isInTransit, sortByAgeDescending } from "./utils/inventoryUtils";
-import { 
-  getModelDisplayName, 
+import {
+  getModelDisplayName,
   rowMatchesModelFilter,
-  shouldSplitByModelNumber 
+  shouldSplitByModelNumber
 } from "./utils/modelFormatting";
 import { AgingBuckets, DrillType, InventoryRow } from "./types";
+import {
+  DRILL_TYPES,
+  DRILL_TITLES,
+  MODEL_DRILL_PREFIX,
+  isModelDrill as isModelDrillType,
+  getModelFromDrill,
+} from "./constants/drillTypes";
 
 import { ErrorBoundary, SectionErrorBoundary } from "./components/ErrorBoundary";
 import { HeaderBar } from "./components/HeaderBar";
@@ -175,20 +182,20 @@ const App: FC = () => {
       return groups;
     };
 
-    if (drillType === "total") return buildGroups(filteredRows);
-    if (drillType === "in_transit") return buildGroups(inTransitRows);
-    if (drillType === "in_stock") return buildGroups(inStockRows);
+    if (drillType === DRILL_TYPES.TOTAL) return buildGroups(filteredRows);
+    if (drillType === DRILL_TYPES.IN_TRANSIT) return buildGroups(inTransitRows);
+    if (drillType === DRILL_TYPES.IN_STOCK) return buildGroups(inStockRows);
 
     let result: InventoryRow[] = [];
-    if (drillType === "new") result = [...newArrivalRows];
-    if (drillType === "0_30") result = validRows.filter((r) => r.Age <= 30 && !isInTransit(r));
-    if (drillType === "31_60") result = validRows.filter((r) => r.Age > 30 && r.Age <= 60 && !isInTransit(r));
-    if (drillType === "61_90") result = validRows.filter((r) => r.Age > 60 && r.Age <= 90 && !isInTransit(r));
-    if (drillType === "90_plus") result = validRows.filter((r) => r.Age > 90 && !isInTransit(r));
+    if (drillType === DRILL_TYPES.NEW) result = [...newArrivalRows];
+    if (drillType === DRILL_TYPES.AGE_0_30) result = validRows.filter((r) => r.Age <= 30 && !isInTransit(r));
+    if (drillType === DRILL_TYPES.AGE_31_60) result = validRows.filter((r) => r.Age > 30 && r.Age <= 60 && !isInTransit(r));
+    if (drillType === DRILL_TYPES.AGE_61_90) result = validRows.filter((r) => r.Age > 60 && r.Age <= 90 && !isInTransit(r));
+    if (drillType === DRILL_TYPES.AGE_90_PLUS) result = validRows.filter((r) => r.Age > 90 && !isInTransit(r));
 
     // Handle model drill type
-    if (drillType.startsWith("model:")) {
-      const modelName = drillType.replace("model:", "");
+    if (drillType.startsWith(MODEL_DRILL_PREFIX)) {
+      const modelName = getModelFromDrill(drillType);
       result = validRows.filter((r) => r.Model === modelName);
     }
 
@@ -197,31 +204,22 @@ const App: FC = () => {
 
   // Get title for drilldown
   const getDrillTitle = (type: string): string => {
-    if (type.startsWith("model:")) {
-      const modelName = type.replace("model:", "");
+    if (type.startsWith(MODEL_DRILL_PREFIX)) {
+      const modelName = getModelFromDrill(type);
       const count = validRows.filter((r) => r.Model === modelName).length;
       return `${modelName} Inventory (${count} vehicles)`;
     }
-    switch (type) {
-      case "0_30": return "Fresh Inventory (0-30 Days)";
-      case "31_60": return "Normal Aging (31-60 Days)";
-      case "61_90": return "Watch List (61-90 Days)";
-      case "90_plus": return "At Risk (90+ Days)";
-      case "new": return "New Arrivals (≤ 7 Days)";
-      case "in_transit": return "In Transit Inventory";
-      case "in_stock": return "In Stock Inventory";
-      default: return "Inventory";
-    }
+    return DRILL_TITLES[type] ?? "Inventory";
   };
 
   const hasModelFilter = !!filters.model;
 
   // Explicit checks for drill types
-  const isAgingDrill = drillType === "0_30" || drillType === "31_60" || drillType === "61_90" || drillType === "90_plus";
-  const isNewArrivalsDrill = drillType === "new";
-  const isInTransitDrill = drillType === "in_transit";
-  const isInStockDrill = drillType === "in_stock";
-  const isModelDrill = drillType?.startsWith("model:");
+  const isAgingDrill = drillType === DRILL_TYPES.AGE_0_30 || drillType === DRILL_TYPES.AGE_31_60 || drillType === DRILL_TYPES.AGE_61_90 || drillType === DRILL_TYPES.AGE_90_PLUS;
+  const isNewArrivalsDrill = drillType === DRILL_TYPES.NEW;
+  const isInTransitDrill = drillType === DRILL_TYPES.IN_TRANSIT;
+  const isInStockDrill = drillType === DRILL_TYPES.IN_STOCK;
+  const isModelDrill = isModelDrillType(drillType);
   const isDrillActive = isAgingDrill || isNewArrivalsDrill || isInTransitDrill || isInStockDrill || isModelDrill;
 
   const handleSmartSearch = useCallback((text: string) => {
@@ -245,7 +243,7 @@ const App: FC = () => {
 
   // Handle pie chart model click - drill down to that model
   const handleModelClick = useCallback((modelName: string) => {
-    const drillValue: DrillType = `model:${modelName}`;
+    const drillValue: DrillType = `${MODEL_DRILL_PREFIX}${modelName}`;
     setDrillType(drillValue);
   }, [setDrillType]);
 
@@ -310,9 +308,9 @@ const App: FC = () => {
                     inTransit={filteredInTransit.length}
                     avgAge={avgAge}
                     onTotalClick={resetAll}
-                    onNewClick={() => setDrillType("new")}
-                    onTransitClick={() => setDrillType("in_transit")}
-                    onInStockClick={() => setDrillType("in_stock")}
+                    onNewClick={() => setDrillType(DRILL_TYPES.NEW)}
+                    onTransitClick={() => setDrillType(DRILL_TYPES.IN_TRANSIT)}
+                    onInStockClick={() => setDrillType(DRILL_TYPES.IN_STOCK)}
                   />
                 </SectionErrorBoundary>
               )}
@@ -336,10 +334,10 @@ const App: FC = () => {
                     modelPieData={modelPieData}
                     agingBuckets={agingBuckets}
                     agingHandlers={{
-                      on0_30: () => setDrillType("0_30"),
-                      on31_60: () => setDrillType("31_60"),
-                      on61_90: () => setDrillType("61_90"),
-                      on90_plus: () => setDrillType("90_plus"),
+                      on0_30: () => setDrillType(DRILL_TYPES.AGE_0_30),
+                      on31_60: () => setDrillType(DRILL_TYPES.AGE_31_60),
+                      on61_90: () => setDrillType(DRILL_TYPES.AGE_61_90),
+                      on90_plus: () => setDrillType(DRILL_TYPES.AGE_90_PLUS),
                     }}
                     onModelClick={handleModelClick}
                   />
@@ -368,7 +366,7 @@ const App: FC = () => {
               )}
 
               {/* Total drilldown (legacy) */}
-              {drillType === "total" && drillData && (
+              {drillType === DRILL_TYPES.TOTAL && drillData && (
                 <SectionErrorBoundary section="drilldown">
                   <DrilldownTable
                     groups={drillData}

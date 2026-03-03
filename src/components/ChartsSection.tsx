@@ -48,6 +48,7 @@ const AgingBucket: FC<AgingBucketProps> = ({ label, value, variant, badgeText, o
   return (
     <button
       type="button"
+      aria-label={`View ${value} vehicles aged ${label}`}
       onClick={onClick}
       className={cn(
         "flex flex-col items-center gap-2 p-4 rounded-lg border bg-card transition-all cursor-pointer",
