@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useRef } from "react";
 import { InventoryRow, DealerSource } from "../types";
 import { useInventoryStore } from "../store/inventoryStore";
-import { excelInventoryService } from "../services/inventoryService";
+import inventoryService from "../services/inventoryService";
 
 const STALE_TIME = 5 * 60 * 1000;
 const CACHE_TIME = 30 * 60 * 1000;
@@ -62,7 +62,7 @@ export function useInventoryLoader() {
     }
 
     try {
-      const parsed = await excelInventoryService.fetchInventory(make);
+      const parsed = await inventoryService.fetchInventory(make);
 
       setRows(parsed);
       setError(null);

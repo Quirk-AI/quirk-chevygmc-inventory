@@ -106,7 +106,7 @@ export const FiltersBar: FC<Props> = memo(({
         <div className="flex-1 min-w-[80px] md:flex-none md:min-w-[100px]">
           <label className={labelClass}>Year</label>
           <Select value={filters.year} onValueChange={(v) => onChange({ year: v })}>
-            <SelectTrigger className="h-9 md:h-10" aria-label="Filter by year">
+            <SelectTrigger className="h-9 md:h-10" aria-label="Filter by model year">
               <SelectValue placeholder="All Years" />
             </SelectTrigger>
             <SelectContent>
@@ -127,7 +127,7 @@ export const FiltersBar: FC<Props> = memo(({
             value={filters.make || "ALL_MAKES"}
             onValueChange={(v) => onChange({ make: v === "ALL_MAKES" ? "" : v, model: "" })}
           >
-            <SelectTrigger className="h-9 md:h-10" aria-label="Filter by make">
+            <SelectTrigger className="h-9 md:h-10" aria-label="Filter by vehicle make">
               <SelectValue placeholder="All Makes" />
             </SelectTrigger>
             <SelectContent>
@@ -148,7 +148,7 @@ export const FiltersBar: FC<Props> = memo(({
             value={filters.model || "ALL_MODELS"}
             onValueChange={(v) => onChange({ model: v === "ALL_MODELS" ? "" : v })}
           >
-            <SelectTrigger className="h-9 md:h-10" aria-label="Filter by model">
+            <SelectTrigger className="h-9 md:h-10" aria-label="Filter by vehicle model">
               <SelectValue placeholder="All Models" />
             </SelectTrigger>
             <SelectContent>
@@ -174,7 +174,7 @@ export const FiltersBar: FC<Props> = memo(({
             value={filters.stockNumber}
             onChange={(e) => onChange({ stockNumber: e.target.value })}
             className="h-9 md:h-10"
-            aria-label="Search by stock number"
+            aria-label="Search inventory by stock number, model, or keyword"
           />
         </div>
 
