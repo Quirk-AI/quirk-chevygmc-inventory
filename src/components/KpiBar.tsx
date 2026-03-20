@@ -8,7 +8,6 @@ interface Props {
   totalVehicles: number;
   totalNew: number;
   inTransit: number;
-  avgAge: number;
   onTotalClick: () => void;
   onNewClick: () => void;
   onTransitClick: () => void;
