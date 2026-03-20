@@ -77,7 +77,7 @@ const App: FC = () => {
   }, [validRows]);
 
   const {
-    agingBuckets, priceBuckets, avgAge, modelPieData,
+    priceBuckets, modelPieData,
     inTransitRows, inStockRows
   } = useInventoryMetrics(validRows);
 
