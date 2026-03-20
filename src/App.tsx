@@ -306,7 +306,6 @@ const App: FC = () => {
                 onChange={setFilters}
                 onSmartSearch={handleSmartSearch}
                 rows={validRows}
-                agingBuckets={agingBuckets}
                 drillType={drillType}
                 drillData={drillData}
                 onSetDrillType={setDrillType}
@@ -325,7 +324,6 @@ const App: FC = () => {
                     totalVehicles={filteredRows.length}
                     totalNew={filteredNewArrivals.length}
                     inTransit={filteredInTransit.length}
-                    avgAge={avgAge}
                     onTotalClick={resetAll}
                     onNewClick={() => setDrillType(DRILL_TYPES.NEW)}
                     onTransitClick={() => setDrillType(DRILL_TYPES.IN_TRANSIT)}

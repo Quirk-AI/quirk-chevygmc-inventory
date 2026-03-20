@@ -1,6 +1,6 @@
 // src/components/FiltersBar.tsx
 import { FC, memo, useMemo } from "react";
-import { Filters, DrillType, AgingBuckets, InventoryRow, DealerSource } from "../types";
+import { Filters, DrillType, InventoryRow, DealerSource } from "../types";
 import { ThemeToggle } from "./ui/ThemeToggle";
 import { DEALER_LABELS } from "../inventoryHelpers";
 import { 
@@ -25,7 +25,6 @@ interface Props {
   onChange: (f: Partial<Filters>) => void;
   onSmartSearch: (text: string) => void;
   rows: InventoryRow[];
-  agingBuckets: AgingBuckets;
   drillType: DrillType;
   drillData: Record<string, InventoryRow[]> | null;
   onSetDrillType: (type: DrillType) => void;
