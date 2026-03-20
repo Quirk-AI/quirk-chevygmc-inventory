@@ -1,432 +1,115 @@
 # CLAUDE.md - Quirk Inventory Dashboard
 
-## Project Overview
+## Project overview
 
-**Quirk Inventory Intelligence Dashboard** - A production-grade React/TypeScript inventory analytics platform for Quirk Auto Dealers (17+ locations across MA/NH). Converts raw Excel inventory data into actionable insights for merchandising, aging risk management, and operational decision-making.
+**Quirk Inventory Intelligence Dashboard** — Production React/TypeScript inventory analytics platform for Quirk Auto Dealers (17+ locations, MA/NH). Parses PBS DMS Excel exports into actionable dashboards for merchandising and operational decisions.
 
-**Live Site:** https://chevynhinventory.netlify.app/
-
----
-
-## Tech Stack
-
-- **Framework:** React 18.3 + TypeScript 5.7
-- **Build:** Vite 6.0
-- **Styling:** Tailwind CSS + shadcn/ui components
-- **State:** Zustand 5.0
-- **Charts:** Recharts
-- **Data:** XLSX parsing from static Excel files
-- **Testing:** Vitest + React Testing Library
-- **Deployment:** Netlify
+**Live:** https://chevynhinventory.netlify.app  
+**Version:** 3.2.0  
+**Last reviewed:** 2026-03-20  
+**Grade:** 8.6/10 (Senior)  
+**Target:** 9.2+ (Principal)
 
 ---
 
-## Quick Commands
+## Tech stack
+
+React 18.3 · TypeScript 5.7 · Vite 6.0 · Tailwind CSS + shadcn/ui · Zustand 5.0 · Recharts · XLSX · Vitest + RTL + Playwright · Netlify
+
+---
+
+## Commands
 
 ```bash
-npm install          # Install dependencies
-npm run dev          # Start dev server (localhost:5173)
+npm run dev          # Dev server (localhost:3000)
 npm run build        # TypeScript check + production build
-npm run test         # Run Vitest tests
-npm run test:ui      # Run tests with UI
-npm run lint         # ESLint check
-npm run lint:fix     # Auto-fix lint issues
-npm run typecheck    # TypeScript only check
-npm run format       # Prettier format
+npm run test         # Vitest unit/integration tests
+npm run test:e2e     # Playwright E2E tests
+npm run typecheck    # TypeScript only
+npm run lint         # ESLint
+npm run format       # Prettier
 ```
 
 ---
 
-## Project Structure
+## Architecture
 
 ```
 src/
-├── App.tsx                 # Main app component with filtering/drill logic
-├── types.ts                # TypeScript types (InventoryRow, Filters, DrillType)
-├── store/
-│   └── inventoryStore.ts   # Zustand state management
+├── App.tsx                    # ⚠️ GOD COMPONENT — 410 lines, needs refactoring
+├── types.ts                   # Core types: InventoryRow, DrillType, PriceBuckets, etc.
+├── store/inventoryStore.ts    # Zustand — single flat store, 15 fields
+├── constants/drillTypes.ts    # Drill type constants, titles, model prefix helpers
+├── services/inventoryService.ts  # Excel fetch + parse (InventoryService interface)
 ├── hooks/
-│   ├── useInventoryLoader.ts  # Main data loading hook (KEEP)
-│   ├── useInventoryCache.ts   # UNUSED - delete
-│   ├── useInventoryData.ts    # UNUSED - delete
+│   ├── useInventoryLoader.ts  # Stale-while-revalidate fetch + localStorage cache
 │   └── useMediaQuery.ts       # Responsive breakpoint hook
 ├── components/
-│   ├── ui/                 # shadcn/ui primitives
-│   ├── ChartsSection.tsx   # Pie chart + aging buckets
-│   ├── DrilldownTable.tsx  # Grouped drill-down view
-│   ├── VirtualizedTable.tsx # Performance-optimized table
-│   ├── ErrorBoundary.tsx   # Error handling wrapper
-│   └── ...
+│   ├── ui/                    # shadcn/ui primitives (card, badge, button, select, sheet)
+│   ├── HeaderBar.tsx          # Top brand header with dealership image
+│   ├── FiltersBar.tsx         # Dealership picker, year/make/model/stock filters
+│   ├── KpiBar.tsx             # 4x metric cards (Total, New, In Transit, In Stock)
+│   ├── ChartsSection.tsx      # Pie chart (model mix) + MSRP price breakdown buckets
+│   ├── NewArrivalsPanel.tsx   # Vehicles ≤7 days old
+│   ├── OldestUnitsPanel.tsx   # Top 10 oldest on-lot vehicles
+│   ├── InventoryTable.tsx     # Main grouped table (<500 rows)
+│   ├── VirtualizedTable.tsx   # @tanstack/react-virtual table (500+ rows)
+│   ├── DrilldownTable.tsx     # Drill-down grouped view from KPI/chart clicks
+│   ├── VehicleDetailDrawer.tsx # Side drawer with vehicle details + VIN Solutions link
+│   ├── ErrorBoundary.tsx      # Class-based error boundary + SectionErrorBoundary
+│   ├── StaleIndicator.tsx     # "Updated X ago" banner with refresh button
+│   ├── LoadingIndicator.tsx   # Spinner
+│   ├── OptimizedImage.tsx     # IntersectionObserver lazy image
+│   └── InventoryHealthPanel.tsx  # ⚠️ DEAD CODE — never imported
 ├── utils/
-│   ├── vehicleUrl.ts       # URL generation (CRITICAL - needs tests)
-│   ├── modelFormatting.ts  # Model number → display name mapping
-│   └── inventoryUtils.ts   # Sorting, transit detection
-├── styles/                 # CSS modules
-└── test/                   # Test setup
+│   ├── vehicleUrl.ts          # 🔴 CRITICAL — URL generation for dealership websites
+│   ├── modelFormatting.ts     # 🔴 CRITICAL — Model number ↔ body style mapping
+│   ├── inventoryUtils.ts      # isInTransit, formatAge, sortByAgeDescending
+│   └── formatCurrency.ts      # ⚠️ DEAD CODE — nothing imports this
+├── inventoryHelpers.ts        # ⚠️ MOSTLY DEAD — only DEALER_LABELS is used
+├── styles/                    # CSS modules (theme, layout, responsive, etc.)
+└── test/setup.ts              # Vitest setup
 ```
 
 ---
 
-## Current Grade: 8.8/10 (A-)
+## Critical rules — read before ANY changes
 
-### Target: 9.2+ (A)
+1. **vehicleUrl.ts** — Generates exact URLs for quirkchevynh.com and quirkbuickgmc.com. GMC/Buick uses spelled-out drive types ("four-wheel-drive"), Chevy uses abbreviations ("4wd"). Corvette, van, truck, and generic URL builders each have distinct formats. Changing any regex or string logic here can break every stock number link. Always run `npm run test` — the 350-line test suite is the safety net.
 
----
+2. **modelFormatting.ts** — Maps GM model numbers (CK10543, TK10743) to body descriptions ("4WD CREW CAB 147" WB"). The `MODEL_NUMBER_DISPLAY_MAP` must match actual PBS data. `parseModelDisplayName()` must round-trip correctly for filters to work.
 
-## TASK LIST - Improvements Needed
+3. **Table column sync** — `InventoryTable.tsx`, `VirtualizedTable.tsx`, and `DrilldownTable.tsx` all render the same column structure. If you add/remove a column from one, you must update all three (desktop AND mobile views). Current structure: Stock # | Year | Model | Exterior | Trim | Body | [In Transit indicator] | MSRP.
 
-Complete these tasks in order. Each task should be a separate commit.
+4. **Stock number popup** — Stock links open in a centered popup window (1000×700), not a new tab. The `handleStockClick` function uses `window.screenX/screenY + outerWidth/outerHeight` for centering. All three table components share this pattern.
 
----
+5. **In Transit logic** — `isInTransit()` checks both `Status` and `Category` fields for "TRANSIT". The column only displays "IN TRANSIT" (amber) when the check passes; otherwise the cell is blank. No numeric age is shown.
 
-### TASK 1: Remove Unused Hooks
+6. **Store reset cascade** — `setSelectedMake()` resets filters, searchTerm, drillType, and selectedVehicle. `resetAll()` does the same minus the make change. Don't add state without considering reset behavior.
 
-**Priority:** High | **Complexity:** Low
-
-Delete these unused files:
-- `src/hooks/useInventoryCache.ts`
-- `src/hooks/useInventoryData.ts`
-
-**Verification:** Run `npm run build` - should pass with no errors.
+7. **Build must pass `tsc --noEmit`** — The build script runs TypeScript checking. Any type error blocks deployment.
 
 ---
 
-### TASK 2: Create Constants File for Drill Types
+## Known dead code — flagged for cleanup
 
-**Priority:** High | **Complexity:** Low
-
-Create `src/constants/drillTypes.ts`:
-
-```typescript
-// src/constants/drillTypes.ts
-
-export const DRILL_TYPES = {
-  TOTAL: "total",
-  NEW: "new",
-  IN_TRANSIT: "in_transit",
-  IN_STOCK: "in_stock",
-  AGE_0_30: "0_30",
-  AGE_31_60: "31_60",
-  AGE_61_90: "61_90",
-  AGE_90_PLUS: "90_plus",
-} as const;
-
-export const DRILL_TITLES: Record<string, string> = {
-  [DRILL_TYPES.AGE_0_30]: "Fresh Inventory (0-30 Days)",
-  [DRILL_TYPES.AGE_31_60]: "Normal Aging (31-60 Days)",
-  [DRILL_TYPES.AGE_61_90]: "Watch List (61-90 Days)",
-  [DRILL_TYPES.AGE_90_PLUS]: "At Risk (90+ Days)",
-  [DRILL_TYPES.NEW]: "New Arrivals (7 Days)",
-  [DRILL_TYPES.IN_TRANSIT]: "In Transit Inventory",
-  [DRILL_TYPES.IN_STOCK]: "In Stock Inventory",
-};
-
-export const MODEL_DRILL_PREFIX = "model:";
-
-export const isModelDrill = (type: string | null): boolean => 
-  type?.startsWith(MODEL_DRILL_PREFIX) ?? false;
-
-export const getModelFromDrill = (type: string): string =>
-  type.replace(MODEL_DRILL_PREFIX, "");
-```
-
-Then refactor `App.tsx` to import and use these constants instead of magic strings.
-
-**Verification:** `npm run typecheck` and `npm run test` should pass.
+| Item | Location | Status |
+|------|----------|--------|
+| `InventoryHealthPanel.tsx` | `src/components/` | Never imported in App.tsx |
+| `formatCurrency.ts` | `src/utils/` | Nothing imports it |
+| `inventoryHelpers.ts` exports | `src/` | Only `DEALER_LABELS` is used (by FiltersBar). `CHART_COLORS`, `getModelColor`, `exportToCsv`, `formatCurrency`, `QUIRK_GREEN`, `POWDER_BLUE` are all dead |
+| `agingBuckets` prop | `FiltersBar.tsx` line 28 | Declared in Props but never consumed |
+| `avgAge` prop | `KpiBar.tsx` line 11 | Accepted in Props interface but never rendered |
+| `newArrivalRows` vs `filteredNewArrivals` | `App.tsx` lines 145/164 | Near-duplicate: one filters `validRows`, the other `filteredRows`. Both filter by `Age > 0 && Age <= 7 && !isInTransit` |
 
 ---
 
-### TASK 3: Add Vehicle URL Tests
+## Known architectural weakness
 
-**Priority:** Critical | **Complexity:** Medium
-
-Create `src/utils/vehicleUrl.test.ts` with comprehensive tests covering:
-
-1. **Domain Routing Tests**
-   - Chevrolet routes to quirkchevynh.com
-   - GMC routes to quirkbuickgmc.com  
-   - Buick routes to quirkbuickgmc.com
-
-2. **Truck URL Tests**
-   - Silverado with crew cab generates correct URL
-   - Sierra uses "four-wheel-drive" instead of "4wd"
-   - Handle double cab, regular cab variants
-
-3. **Corvette URL Tests**
-   - Stingray coupe URL format
-   - E-Ray convertible with AWD
-   - Z06 variants
-
-4. **SUV URL Tests**
-   - Tahoe, Suburban generate SUV body type
-   - Equinox, Traverse, Blazer variants
-
-5. **Edge Cases**
-   - Empty VIN returns empty string
-   - Missing Body field handled gracefully
-   - Missing Trim field handled
-
-Use this mock factory:
-
-```typescript
-const createMockRow = (overrides: Partial<InventoryRow>): InventoryRow => ({
-  "Stock Number": "TEST001",
-  Year: 2024,
-  Make: "CHEVROLET",
-  Model: "SILVERADO 1500",
-  "Exterior Color": "WHITE",
-  Trim: "LT",
-  "Model Number": "CK10543",
-  Cylinders: 8,
-  Age: 10,
-  MSRP: 50000,
-  Status: "ON DEALER LOT",
-  VIN: "1gcuyded1rz123456",
-  Body: '4WD Crew Cab 147" w/1',
-  ...overrides,
-});
-```
-
-**Verification:** `npm run test` should show new vehicleUrl tests passing.
+**App.tsx is a god component (410 lines).** It computes 12+ memoized derivations (agingBuckets, priceBuckets, avgAge, sortedRows, filteredRows, filteredNewArrivals, filteredInTransit, modelPieData, newArrivalRows, inTransitRows, inStockRows, drillData) and contains all drill logic, filter logic, and orchestration. This should be decomposed into custom hooks.
 
 ---
 
-### TASK 4: Convert ErrorBoundary to Tailwind
+## Testing overview
 
-**Priority:** Medium | **Complexity:** Medium
-
-Refactor `src/components/ErrorBoundary.tsx` to use Tailwind classes instead of inline styles.
-
-Key mappings:
-- `padding: "40px 20px"` -> `px-5 py-10`
-- `textAlign: "center"` -> `text-center`
-- `background: "rgba(239, 68, 68, 0.1)"` -> `bg-red-500/10`
-- `border: "1px solid rgba(239, 68, 68, 0.3)"` -> `border border-red-500/30`
-- `borderRadius: "12px"` -> `rounded-xl`
-- `fontSize: "48px"` -> `text-5xl`
-- `fontSize: "20px"` -> `text-xl`
-- `fontSize: "14px"` -> `text-sm`
-- `fontSize: "12px"` -> `text-xs`
-- `fontSize: "11px"` -> `text-xs`
-- `fontWeight: 600` -> `font-semibold`
-- `color: "#ef4444"` -> `text-red-500`
-- `color: "#9ca3af"` -> `text-muted-foreground`
-- `color: "#ffffff"` -> `text-white`
-- `marginBottom: "8px"` -> `mb-2`
-- `marginBottom: "16px"` -> `mb-4`
-- `marginBottom: "20px"` -> `mb-5`
-- `marginTop: "8px"` -> `mt-2`
-- `maxWidth: "400px"` -> `max-w-md`
-- `maxWidth: "500px"` -> `max-w-lg`
-- `margin: "0 auto 20px"` -> `mx-auto mb-5`
-- `cursor: "pointer"` -> `cursor-pointer`
-- `whiteSpace: "pre-wrap"` -> `whitespace-pre-wrap`
-- `wordBreak: "break-word"` -> `break-words`
-
-Remove all `onMouseOver` and `onMouseOut` handlers - use Tailwind `hover:` variants instead.
-
-**Verification:** Visual check that error UI still looks correct, `npm run build` passes.
-
----
-
-### TASK 5: Add .gitattributes for Line Endings
-
-**Priority:** Low | **Complexity:** Low
-
-Create `.gitattributes` in project root:
-
-```
-# .gitattributes - Normalize line endings
-* text=auto eol=lf
-*.{cmd,[cC][mM][dD]} text eol=crlf
-*.{bat,[bB][aA][tT]} text eol=crlf
-```
-
-Then normalize existing files:
-
-```bash
-git add --renormalize .
-git commit -m "chore: normalize line endings"
-```
-
-**Verification:** `file tailwind.config.js` should show "ASCII text" not "with CRLF".
-
----
-
-### TASK 6: Create Data Service Abstraction
-
-**Priority:** Medium | **Complexity:** Medium
-
-Create `src/services/inventoryService.ts` to abstract data fetching:
-
-```typescript
-// src/services/inventoryService.ts
-import * as XLSX from "xlsx";
-import { InventoryRow, DealerSource } from "../types";
-
-export const INVENTORY_PATHS: Record<DealerSource, string> = {
-  chevrolet: "/inventory.xlsx",
-  "buick-gmc": "/gmc-inventory.xlsx",
-};
-
-export interface InventoryService {
-  fetchInventory(source: DealerSource): Promise<InventoryRow[]>;
-}
-
-export const excelInventoryService: InventoryService = {
-  async fetchInventory(source: DealerSource): Promise<InventoryRow[]> {
-    const path = INVENTORY_PATHS[source];
-    const response = await fetch(path);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: Failed to fetch inventory`);
-    }
-    
-    const data = await response.arrayBuffer();
-    return parseExcelData(data);
-  },
-};
-
-function parseExcelData(data: ArrayBuffer): InventoryRow[] {
-  const workbook = XLSX.read(data, { type: "array" });
-  const sheetName = workbook.SheetNames[0];
-  
-  if (!sheetName) throw new Error("No sheets found in workbook");
-  
-  const worksheet = workbook.Sheets[sheetName];
-  if (!worksheet) throw new Error("Worksheet not found");
-
-  const rawData = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet);
-
-  return rawData
-    .filter((row) => row["Stock Number"] != null && String(row["Stock Number"]).trim() !== "")
-    .map((row) => ({
-      "Stock Number": String(row["Stock Number"] ?? ""),
-      Year: Number(row["Year"]) || 0,
-      Make: String(row["Make"] ?? ""),
-      Model: String(row["Model"] ?? ""),
-      "Exterior Color": String(row["Exterior Color"] ?? ""),
-      Trim: String(row["Trim"] ?? ""),
-      "Model Number": String(row["Model Number"] ?? ""),
-      Cylinders: Number(row["Cylinders"]) || 0,
-      Age: Number(row["Age"]) || 0,
-      MSRP: Number(row["MSRP"]) || 0,
-      Status: String(row["Category"] ?? ""),
-      VIN: String(row["VIN"] ?? ""),
-      Body: String(row["Body"] ?? ""),
-      "Body Type": String(row["Body Type"] ?? ""),
-      Category: String(row["Category"] ?? ""),
-    }));
-}
-
-export default excelInventoryService;
-```
-
-Then update `useInventoryLoader.ts` to import and use `inventoryService.fetchInventory()`.
-
-Move `INVENTORY_PATHS` from `inventoryHelpers.ts` to the service file.
-
-**Verification:** App still loads inventory correctly, `npm run build` passes.
-
----
-
-### TASK 7: Add Accessibility Improvements
-
-**Priority:** Medium | **Complexity:** Low
-
-Add missing ARIA attributes:
-
-**ChartsSection.tsx:**
-```tsx
-<button
-  type="button"
-  aria-label={`View ${value} vehicles aged ${label}`}
-  onClick={onClick}
-  ...
->
-```
-
-**VirtualizedTable.tsx:**
-```tsx
-<div role="table" aria-label="Vehicle inventory">
-  <div role="rowgroup" className="sticky top-0...">
-    <div role="row">
-      <div role="columnheader">Stock #</div>
-      ...
-    </div>
-  </div>
-```
-
-**KpiBar.tsx:**
-```tsx
-<button
-  aria-label={`View all ${totalVehicles} vehicles in inventory`}
-  onClick={onTotalClick}
-  ...
->
-```
-
-**FiltersBar.tsx:**
-Add `aria-label` to Select components and search input.
-
-**Verification:** Run Lighthouse accessibility audit - target 90+ score.
-
----
-
-### TASK 8: Add VirtualizedTable Tests
-
-**Priority:** Medium | **Complexity:** Medium
-
-Create `src/components/VirtualizedTable.test.tsx`:
-
-Test cases to cover:
-1. Renders vehicle rows correctly
-2. Displays correct vehicle count
-3. Calls onRowClick when row is clicked
-4. Groups vehicles by year and model
-5. Returns null when rows array is empty
-6. Sorts groups by year descending
-7. Stock number link opens in new tab
-
-Use the same mock factory pattern from vehicleUrl tests.
-
-**Verification:** `npm run test` shows VirtualizedTable tests passing.
-
----
-
-## Code Style Notes
-
-- Use `memo()` for components receiving large arrays
-- Use `useMemo()` for expensive calculations  
-- Use `useCallback()` for handlers passed to children
-- Prefer Tailwind classes over inline styles
-- All components should have `displayName` set for DevTools
-- Tests should cover happy path + edge cases
-
----
-
-## Critical Files - Handle with Care
-
-| File | Reason |
-|------|--------|
-| `src/utils/vehicleUrl.ts` | Complex URL generation logic for dealership websites |
-| `src/utils/modelFormatting.ts` | Model number to body style mapping (trucks) |
-| `src/store/inventoryStore.ts` | Central state - changes affect entire app |
-| `src/hooks/useInventoryLoader.ts` | Data loading + caching logic |
-
----
-
-## After Completing All Tasks
-
-Run full verification:
-
-```bash
-npm run typecheck
-npm run lint  
-npm run test
-npm run build
-```
-
-All should pass with zero warnings/errors.
-
-**Expected Final Grade: 9.2/10 (A)**
+9 unit/integration test files (1,953 LOC) + 1 Playwright E2E spec. Coverage concentrated on utils and critical business logic. Gaps: no tests for App.tsx, ChartsSection, DrilldownTable, InventoryTable, FiltersBar, NewArrivalsPanel, OldestUnitsPanel.
