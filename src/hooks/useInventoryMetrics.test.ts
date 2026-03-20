@@ -137,29 +137,5 @@ describe("useInventoryMetrics", () => {
     });
   });
 
-  describe("avgAge", () => {
-    it("computes average age of on-lot vehicles", () => {
-      const rows = [
-        createMockRow({ Age: 10 }),
-        createMockRow({ Age: 20 }),
-        createMockRow({ Age: 30 }),
-      ];
-      const { result } = renderHook(() => useInventoryMetrics(rows));
-      expect(result.current.avgAge).toBe(20);
-    });
 
-    it("excludes in-transit vehicles", () => {
-      const rows = [
-        createMockRow({ Age: 10 }),
-        createMockRow({ Age: 100, Status: "IN TRANSIT" }),
-      ];
-      const { result } = renderHook(() => useInventoryMetrics(rows));
-      expect(result.current.avgAge).toBe(10);
-    });
-
-    it("returns 0 for empty input", () => {
-      const { result } = renderHook(() => useInventoryMetrics([]));
-      expect(result.current.avgAge).toBe(0);
-    });
-  });
 });

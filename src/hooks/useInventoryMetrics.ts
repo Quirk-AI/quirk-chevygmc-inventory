@@ -5,7 +5,7 @@ import { isInTransit } from "../utils/inventoryUtils";
 interface InventoryMetrics {
   agingBuckets: AgingBuckets;
   priceBuckets: PriceBuckets;
-  avgAge: number;
+
   modelPieData: ModelPieDatum[];
   inTransitRows: InventoryRow[];
   inStockRows: InventoryRow[];
@@ -36,14 +36,6 @@ export function useInventoryMetrics(validRows: InventoryRow[]): InventoryMetrics
     return b;
   }, [validRows]);
 
-  // Calculate average age for KPI
-  const avgAge = useMemo(() => {
-    const onLotRows = validRows.filter((r) => !isInTransit(r) && r.Age > 0);
-    if (onLotRows.length === 0) return 0;
-    const totalAge = onLotRows.reduce((sum, r) => sum + r.Age, 0);
-    return Math.round(totalAge / onLotRows.length);
-  }, [validRows]);
-
   const modelPieData = useMemo(() => {
     const countByModel: Record<string, number> = {};
     validRows.forEach((r) => {
@@ -64,5 +56,5 @@ export function useInventoryMetrics(validRows: InventoryRow[]): InventoryMetrics
     return validRows.filter((r) => !isInTransit(r));
   }, [validRows]);
 
-  return { agingBuckets, priceBuckets, avgAge, modelPieData, inTransitRows, inStockRows };
+  return { agingBuckets, priceBuckets, modelPieData, inTransitRows, inStockRows };
 }
