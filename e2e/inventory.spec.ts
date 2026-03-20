@@ -94,7 +94,7 @@ test.describe("Inventory Dashboard", () => {
     }
   });
 
-  test("stock number link opens in new tab", async ({ page, context }) => {
+  test("stock number link opens in popup window", async ({ page }) => {
     // Get the first stock number link
     const stockLink = page
       .locator("a, span")

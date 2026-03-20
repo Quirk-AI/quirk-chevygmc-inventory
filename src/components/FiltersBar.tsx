@@ -159,11 +159,11 @@ export const FiltersBar: FC<Props> = memo(({
           </label>
           <Input
             type="text"
-            placeholder="Search..."
+            placeholder="e.g. M39001"
             value={filters.stockNumber}
             onChange={(e) => onChange({ stockNumber: e.target.value })}
             className="h-9 md:h-10"
-            aria-label="Search inventory by stock number, model, or keyword"
+            aria-label="Filter by stock number"
           />
         </div>
 

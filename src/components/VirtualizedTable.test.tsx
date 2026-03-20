@@ -113,7 +113,7 @@ describe("VirtualizedTable", () => {
     expect(headers[2]?.textContent).toContain("2023");
   });
 
-  it("stock number link opens in new tab", () => {
+  it("stock number link opens in popup window", () => {
     const rows = [createMockRow()];
     render(<VirtualizedTable rows={rows} onRowClick={vi.fn()} />);
 
