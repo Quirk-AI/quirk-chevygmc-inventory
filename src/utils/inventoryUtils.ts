@@ -5,7 +5,8 @@ import { InventoryRow } from "../types";
  * Check if a vehicle is in transit
  */
 export function isInTransit(row: InventoryRow): boolean {
-  return (row.Status || "").toUpperCase().includes("TRANSIT");
+  return (row.Status || "").toUpperCase().includes("TRANSIT") ||
+    (row.Category || "").toUpperCase().includes("TRANSIT");
 }
 
 /**
