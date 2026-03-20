@@ -1,19 +1,19 @@
 // src/components/ChartsSection.tsx
 import { FC, memo } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import { AgingBuckets, ModelPieDatum } from "../types";
+import { PriceBuckets, ModelPieDatum } from "../types";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { cn } from "../lib/utils";
 
 interface Props {
   modelPieData: ModelPieDatum[];
-  agingBuckets: AgingBuckets;
-  agingHandlers: {
-    on0_30: () => void;
-    on31_60: () => void;
-    on61_90: () => void;
-    on90_plus: () => void;
+  priceBuckets: PriceBuckets;
+  priceHandlers: {
+    onUnder40k: () => void;
+    on40kTo60k: () => void;
+    on60kTo80k: () => void;
+    onOver80k: () => void;
   };
   onModelClick?: (model: string) => void;
 }
@@ -29,7 +29,7 @@ const MODEL_COLORS = [
   "#64748b", // Slate
 ];
 
-interface AgingBucketProps {
+interface PriceBucketProps {
   label: string;
   value: number;
   variant: "fresh" | "normal" | "watch" | "risk";
@@ -37,18 +37,18 @@ interface AgingBucketProps {
   onClick: () => void;
 }
 
-const AgingBucket: FC<AgingBucketProps> = ({ label, value, variant, badgeText, onClick }) => {
+const PriceBucket: FC<PriceBucketProps> = ({ label, value, variant, badgeText, onClick }) => {
   const variantStyles = {
     fresh: "hover:border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30",
-    normal: "hover:border-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-950/30",
-    watch: "hover:border-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30",
-    risk: "hover:border-red-400 hover:bg-red-50 dark:hover:bg-red-950/30",
+    normal: "hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30",
+    watch: "hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30",
+    risk: "hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30",
   };
 
   return (
     <button
       type="button"
-      aria-label={`View ${value} vehicles aged ${label}`}
+      aria-label={`View ${value} vehicles priced ${label}`}
       onClick={onClick}
       className={cn(
         "flex flex-col items-center gap-2 p-4 rounded-lg border bg-card transition-all cursor-pointer",
@@ -65,8 +65,8 @@ const AgingBucket: FC<AgingBucketProps> = ({ label, value, variant, badgeText, o
 
 export const ChartsSection: FC<Props> = memo(({
   modelPieData,
-  agingBuckets,
-  agingHandlers,
+  priceBuckets,
+  priceHandlers,
   onModelClick,
 }) => {
   // Handle pie chart segment click
@@ -141,44 +141,47 @@ export const ChartsSection: FC<Props> = memo(({
         </CardContent>
       </Card>
 
-      {/* Aging Buckets */}
+      {/* MSRP Price Breakdown */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-center text-base font-semibold">
-            Aging Overview - Days in Stock
+            MSRP Price Breakdown
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-3">
-            <AgingBucket
-              label="0-30 Days"
-              value={agingBuckets.bucket0_30}
+            <PriceBucket
+              label="Under $40K"
+              value={priceBuckets.under40k}
               variant="fresh"
-              badgeText="Fresh"
-              onClick={agingHandlers.on0_30}
+              badgeText="Value"
+              onClick={priceHandlers.onUnder40k}
             />
-            <AgingBucket
-              label="31-60 Days"
-              value={agingBuckets.bucket31_60}
+            <PriceBucket
+              label="$40K – $60K"
+              value={priceBuckets.from40kTo60k}
               variant="normal"
-              badgeText="Normal"
-              onClick={agingHandlers.on31_60}
+              badgeText="Mid-Range"
+              onClick={priceHandlers.on40kTo60k}
             />
-            <AgingBucket
-              label="61-90 Days"
-              value={agingBuckets.bucket61_90}
+            <PriceBucket
+              label="$60K – $80K"
+              value={priceBuckets.from60kTo80k}
               variant="watch"
-              badgeText="Watch"
-              onClick={agingHandlers.on61_90}
+              badgeText="Premium"
+              onClick={priceHandlers.on60kTo80k}
             />
-            <AgingBucket
-              label="90+ Days"
-              value={agingBuckets.bucket90_plus}
+            <PriceBucket
+              label="$80K+"
+              value={priceBuckets.over80k}
               variant="risk"
-              badgeText="At Risk"
-              onClick={agingHandlers.on90_plus}
+              badgeText="Luxury"
+              onClick={priceHandlers.onOver80k}
             />
           </div>
+          <p className="text-xs text-center text-muted-foreground mt-4">
+            Click a price range to view vehicles
+          </p>
         </CardContent>
       </Card>
     </div>
