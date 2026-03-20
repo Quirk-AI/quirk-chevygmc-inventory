@@ -1,6 +1,6 @@
 # Operations Guide
 
-This document covers how to update inventory data, expected data formats, and error handling behavior.
+How to update inventory data, what to expect, and what to check when things look wrong.
 
 ---
 
@@ -8,156 +8,109 @@ This document covers how to update inventory data, expected data formats, and er
 
 ### File Locations
 
-| Dealership | File Path | Format |
-|------------|-----------|--------|
-| Chevrolet | `/public/inventory.xlsx` | Excel (.xlsx) |
-| Buick GMC | `/public/gmc-inventory.xlsx` | Excel (.xlsx) |
+| Dealership | File Path |
+|------------|-----------|
+| Chevrolet | `/public/inventory.xlsx` |
+| Buick GMC | `/public/gmc-inventory.xlsx` |
 
 ### Update Process
 
-1. Export inventory data from your DMS (PBS, VIN Solutions, etc.)
-2. Ensure the file matches the expected schema (see below)
-3. Replace the appropriate file in `/public/`
-4. Deploy to Netlify (automatic on push to `main`)
+1. Export inventory from PBS DMS (automated daily report)
+2. Replace the appropriate file in `/public/`
+3. Push to `main` — Netlify deploys automatically
+4. Users refresh their browser to see new data
 
-### Expected Schema
+### Required Excel Columns
 
-The Excel file must contain these columns (case-sensitive):
+| Column | Type | Required | Notes |
+|--------|------|----------|-------|
+| `Stock Number` | String | Yes | Unique vehicle identifier |
+| `Year` | Number | Yes | Model year |
+| `Make` | String | Yes | CHEVROLET, BUICK, or GMC |
+| `Model` | String | Yes | SILVERADO 1500, TAHOE, etc. |
+| `Exterior Color` | String | Yes | Full color name |
+| `Trim` | String | Yes | LT, RST, HIGH COUNTRY, etc. |
+| `Model Number` | String | Yes | OEM code (CK10543, TK10743) |
+| `Cylinders` | Number | No | Engine cylinder count |
+| `Age` | Number | Yes | Days on lot |
+| `MSRP` | Number | Yes | Vehicle price (numeric, no $ or commas) |
+| `Category` | String | Yes | ON DEALER LOT, IN TRANSIT, etc. |
+| `VIN` | String | Yes | 17-character VIN |
+| `Body` | String | No | Body description (e.g., `4WD Crew Cab 147" w/1`) |
 
-| Column | Type | Required | Description |
-|--------|------|----------|-------------|
-| `Stock Number` | String | ✅ | Unique vehicle identifier |
-| `Year` | Number | ✅ | Model year (e.g., 2024) |
-| `Make` | String | ✅ | CHEVROLET, BUICK, GMC |
-| `Model` | String | ✅ | SILVERADO 1500, TAHOE, etc. |
-| `Exterior Color` | String | ✅ | Full color name |
-| `Trim` | String | ✅ | LT, RST, HIGH COUNTRY, etc. |
-| `Model Number` | String | ✅ | OEM code (CK10543, TK10743) |
-| `Cylinders` | Number | ❌ | Engine cylinder count |
-| `Age` | Number | ✅ | Days on lot |
-| `MSRP` | Number | ✅ | Vehicle price |
-| `Category` | String | ✅ | Status indicator (see below) |
-| `VIN` | String | ✅ | 17-character VIN |
-| `Body` | String | ❌ | Body description |
-| `Body Type` | String | ❌ | Body type category |
+Column names are **case-sensitive** and must match exactly.
 
 ### Category Values
 
-The `Category` column determines vehicle status:
-
-| Value | Status | Display |
-|-------|--------|---------|
-| `ON DEALER LOT` | In Stock | Included in aging calculations |
-| `ON DEALER LOT ` (trailing space) | In Stock | Also recognized |
-| `IN TRANSIT` | In Transit | Excluded from aging, shown in Transit count |
-| `IN TRANSIT SOLD` | In Transit (Sold) | Same as IN TRANSIT |
-
-### Body Field Format
-
-For trucks (Silverado/Sierra), the Body field should follow this pattern:
-```
-4WD Crew Cab 147" w/1
-4WD Reg Cab 126"
-4WD Double Cab 162" w/3SB
-```
-
-The dashboard normalizes these to display format:
-```
-4WD CREW CAB 147" WB
-4WD REG CAB 126" WB
-4WD DOUBLE CAB 162" WB
-```
-
-For other vehicles (Corvette, Tahoe, Equinox, etc.):
-```
-2dr Stingray Cpe w/    → 2DR STINGRAY CPE
-FWD 4dr                → FWD 4DR
-AWD 4dr LT w/2LT       → AWD 4DR LT
-```
+| Value | Meaning |
+|-------|---------|
+| `ON DEALER LOT` | In stock, included in aging calculations |
+| `IN TRANSIT` | In transit, excluded from aging |
+| `IN TRANSIT SOLD` | Treated same as IN TRANSIT |
 
 ---
 
-## Error Handling
+## Data Refresh Behavior
 
-### Malformed Files
+- The dashboard fetches inventory data once on page load
+- Client-side cache: 5-minute stale threshold, 30-minute expiry
+- The "Updated X minutes ago" indicator shows when the page was loaded, not when the Excel file was last modified
+- A manual refresh button appears when data is stale
+- Switching dealerships triggers a new fetch for that dealership's file
 
-| Issue | Dashboard Behavior |
-|-------|-------------------|
-| Missing file | Shows loading error, prompts to check file path |
-| Invalid Excel format | Shows parse error message |
-| Missing required columns | Loads with empty/undefined values |
-| Wrong data types | Attempts to coerce, may show NaN |
-| Empty file | Shows "0 vehicles" with empty state |
-
-### Data Validation
-
-The dashboard performs minimal validation:
-- Numeric fields (`Year`, `Age`, `MSRP`) are coerced to numbers
-- Missing `Category` defaults to empty string (treated as in-stock)
-- Missing `Body` field shows "-" in tables
-
-### Recommended Validation Checklist
-
-Before uploading, verify:
-- [ ] File opens in Excel without errors
-- [ ] All required columns are present with exact names
-- [ ] `Stock Number` column has no duplicates
-- [ ] `Year` values are 4-digit numbers
-- [ ] `MSRP` values are numeric (no $ or commas in data)
-- [ ] `Age` values are non-negative integers
-- [ ] `Category` uses one of the recognized values
+There is no automatic polling or live update.
 
 ---
 
-## Troubleshooting
+## Stale Data Indicator
+
+When data is older than 5 minutes, a yellow banner appears at the top with a refresh button. This triggers a fresh fetch of the Excel file. If the file hasn't changed, the user sees the same data.
+
+---
+
+## Known Failure Modes
 
 ### "No vehicles found"
 1. Check that the Excel file exists in `/public/`
 2. Verify the file has data rows (not just headers)
 3. Check browser console for parse errors
+4. Confirm the file is valid `.xlsx` format
 
 ### Incorrect vehicle counts
-1. Verify `Category` column values match expected patterns
-2. Check for trailing spaces in category values
-3. Confirm filters are cleared (Model = "All Models", etc.)
+1. Check `Category` column values — trailing spaces are handled, but other variations are not
+2. Clear all filters (Year, Make, Model) before comparing
+3. In-transit vehicles are excluded from aging counts but included in total count
 
 ### Model dropdown shows raw codes (CK10543)
-The model number is not in the `MODEL_NUMBER_DISPLAY_MAP`. Add it to:
-```
-src/utils/modelFormatting.ts
-```
+The model number is not in `MODEL_NUMBER_DISPLAY_MAP` in `src/utils/modelFormatting.ts`. Add the mapping there.
 
-### Body column shows "2" WB" or similar
-The `formatBodyDescription` function didn't recognize the body format. Check the raw data in the Excel file and update the function if needed.
+### Stock number links open wrong page or 404
+The dealership website URL format may have changed. Check and update `src/utils/vehicleUrl.ts`. Run `npm run test` — the 26-test URL suite will catch regressions.
+
+### Data appears stale after file update
+The browser may be serving a cached version. Hard refresh (Ctrl+Shift+R) or clear the browser cache. The Netlify CDN may also cache static assets briefly.
 
 ---
 
 ## Deployment
 
-### Netlify (Production)
+### Netlify (production)
 - Automatic deploy on push to `main`
 - Build command: `npm run build`
 - Publish directory: `dist`
 - Node version: 20
+- No environment variables required
 
-### Local Development
+### Local development
 ```bash
 npm install
-npm run dev      # Start dev server on :3000
-npm run build    # Production build
-npm run preview  # Preview production build
+npm run dev      # Dev server on localhost:3000
+npm run build    # Production build with TypeScript check
+npm run test     # Unit/integration tests
 ```
-
-### Environment
-No environment variables required. All data is loaded from static Excel files.
 
 ---
 
-## Data Refresh Frequency
+## Security Note
 
-The dashboard loads data once on page load. To see updated inventory:
-1. Replace the Excel file(s)
-2. Deploy (or refresh in development)
-3. User refreshes their browser
-
-The "Updated X minutes ago" indicator reflects when the page was loaded, not when the data file was modified.
+Inventory Excel files are served as static assets from `/public/`. Anyone with the deployed URL can download them directly. This is acceptable for internal use but not appropriate if the data or audience becomes more sensitive. See `docs/ADR-001-inventory-data-source.md` for details and migration path.
