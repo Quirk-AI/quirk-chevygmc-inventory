@@ -40,7 +40,7 @@ interface PriceBucketProps {
 const PriceBucket: FC<PriceBucketProps> = ({ label, value, variant, badgeText, onClick }) => {
   const variantStyles = {
     fresh: "bg-emerald-100 border-emerald-200 hover:border-emerald-400 hover:bg-emerald-200 dark:bg-emerald-950/50 dark:border-emerald-800 dark:hover:bg-emerald-950/70",
-    normal: "bg-yellow-100 border-yellow-200 hover:border-yellow-400 hover:bg-yellow-200 dark:bg-yellow-950/50 dark:border-yellow-800 dark:hover:bg-yellow-950/70",
+    normal: "bg-sky-100 border-sky-200 hover:border-sky-400 hover:bg-sky-200 dark:bg-sky-950/50 dark:border-sky-800 dark:hover:bg-sky-950/70",
     watch: "bg-orange-100 border-orange-200 hover:border-orange-400 hover:bg-orange-200 dark:bg-orange-950/50 dark:border-orange-800 dark:hover:bg-orange-950/70",
     risk: "bg-blue-100 border-blue-200 hover:border-blue-400 hover:bg-blue-200 dark:bg-blue-950/50 dark:border-blue-800 dark:hover:bg-blue-950/70",
   };
