@@ -124,6 +124,6 @@ describe("KpiBar", () => {
 
     const totalCard = screen.getByText("Total Vehicles").closest("[class*='rounded-xl']");
     expect(totalCard).toHaveClass("border-primary");
-    expect(totalCard).toHaveClass("bg-blue-50");
+    expect(totalCard).toHaveClass("bg-blue-100");
   });
 });

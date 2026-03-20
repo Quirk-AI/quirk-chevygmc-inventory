@@ -74,7 +74,7 @@ export const KpiBar: FC<Props> = memo(({
         icon={<Car className="h-5 w-5" />}
         onClick={onTotalClick}
         highlight
-        className="bg-blue-50 dark:bg-blue-950/30"
+        className="bg-blue-100 dark:bg-blue-950/50"
         ariaLabel={`View all ${totalVehicles} vehicles in inventory`}
       />
       <KpiCard
@@ -82,7 +82,7 @@ export const KpiBar: FC<Props> = memo(({
         value={totalNew}
         icon={<Package className="h-5 w-5" />}
         onClick={onNewClick}
-        className="bg-emerald-50 dark:bg-emerald-950/30"
+        className="bg-emerald-100 dark:bg-emerald-950/50"
         ariaLabel={`View ${totalNew} new arrivals`}
       />
       <KpiCard
@@ -90,7 +90,7 @@ export const KpiBar: FC<Props> = memo(({
         value={inTransit}
         icon={<TrendingUp className="h-5 w-5" />}
         onClick={onTransitClick}
-        className="bg-amber-50 dark:bg-amber-950/30"
+        className="bg-amber-100 dark:bg-amber-950/50"
         ariaLabel={`View ${inTransit} vehicles in transit`}
       />
       <KpiCard
@@ -98,7 +98,7 @@ export const KpiBar: FC<Props> = memo(({
         value={inStock}
         icon={<Warehouse className="h-5 w-5" />}
         onClick={onInStockClick}
-        className="bg-purple-50 dark:bg-purple-950/30"
+        className="bg-purple-100 dark:bg-purple-950/50"
         ariaLabel={`View ${inStock} vehicles in stock`}
       />
     </div>

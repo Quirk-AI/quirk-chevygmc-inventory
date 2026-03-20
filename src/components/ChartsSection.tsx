@@ -39,10 +39,10 @@ interface PriceBucketProps {
 
 const PriceBucket: FC<PriceBucketProps> = ({ label, value, variant, badgeText, onClick }) => {
   const variantStyles = {
-    fresh: "hover:border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30",
-    normal: "hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30",
-    watch: "hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30",
-    risk: "hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30",
+    fresh: "bg-emerald-100 border-emerald-200 hover:border-emerald-400 hover:bg-emerald-200 dark:bg-emerald-950/50 dark:border-emerald-800 dark:hover:bg-emerald-950/70",
+    normal: "bg-yellow-100 border-yellow-200 hover:border-yellow-400 hover:bg-yellow-200 dark:bg-yellow-950/50 dark:border-yellow-800 dark:hover:bg-yellow-950/70",
+    watch: "bg-orange-100 border-orange-200 hover:border-orange-400 hover:bg-orange-200 dark:bg-orange-950/50 dark:border-orange-800 dark:hover:bg-orange-950/70",
+    risk: "bg-blue-100 border-blue-200 hover:border-blue-400 hover:bg-blue-200 dark:bg-blue-950/50 dark:border-blue-800 dark:hover:bg-blue-950/70",
   };
 
   return (
@@ -51,7 +51,7 @@ const PriceBucket: FC<PriceBucketProps> = ({ label, value, variant, badgeText, o
       aria-label={`View ${value} vehicles priced ${label}`}
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center gap-2 p-4 rounded-lg border bg-card transition-all cursor-pointer",
+        "flex flex-col items-center gap-2 p-4 rounded-lg border transition-all cursor-pointer",
         "focus:outline-none focus:ring-2 focus:ring-primary",
         variantStyles[variant]
       )}
