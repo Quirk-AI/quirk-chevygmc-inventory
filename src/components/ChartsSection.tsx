@@ -41,7 +41,7 @@ const PriceBucket: FC<PriceBucketProps> = ({ label, value, variant, badgeText, o
   const variantStyles = {
     fresh: "bg-emerald-100 border-emerald-200 hover:border-emerald-400 hover:bg-emerald-200 dark:bg-emerald-950/50 dark:border-emerald-800 dark:hover:bg-emerald-950/70",
     normal: "bg-violet-100 border-violet-200 hover:border-violet-400 hover:bg-violet-200 dark:bg-violet-950/50 dark:border-violet-800 dark:hover:bg-violet-950/70",
-    watch: "bg-orange-100 border-orange-200 hover:border-orange-400 hover:bg-orange-200 dark:bg-orange-950/50 dark:border-orange-800 dark:hover:bg-orange-950/70",
+    watch: "bg-orange-200 border-orange-300 hover:border-orange-500 hover:bg-orange-300 dark:bg-orange-950/50 dark:border-orange-800 dark:hover:bg-orange-950/70",
     risk: "bg-teal-200 border-teal-300 hover:border-teal-500 hover:bg-teal-300 dark:bg-teal-950/50 dark:border-teal-800 dark:hover:bg-teal-950/70",
   };
 

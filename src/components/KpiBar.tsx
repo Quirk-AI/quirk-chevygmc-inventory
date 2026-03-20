@@ -98,7 +98,7 @@ export const KpiBar: FC<Props> = memo(({
         value={inStock}
         icon={<Warehouse className="h-5 w-5" />}
         onClick={onInStockClick}
-        className="bg-purple-100 dark:bg-purple-950/50"
+        className="bg-green-200 dark:bg-green-950/50"
         ariaLabel={`View ${inStock} vehicles in stock`}
       />
     </div>
