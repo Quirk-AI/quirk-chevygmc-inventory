@@ -145,6 +145,12 @@ export const InventoryTable: FC<Props> = memo(({ rows, onRowClick }) => {
                         <span className="text-muted-foreground">Body</span>
                         <span>{formatBodyDescription(r.Body) || "-"}</span>
                       </div>
+                      {isInTransit(r) && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Status</span>
+                          <span className="text-amber-500 font-semibold">IN TRANSIT</span>
+                        </div>
+                      )}
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">MSRP</span>
                         <span className="font-semibold">${Number(r.MSRP).toLocaleString()}</span>
@@ -175,6 +181,7 @@ export const InventoryTable: FC<Props> = memo(({ rows, onRowClick }) => {
                 <th className="p-3"></th>
                 <th className="p-3"></th>
                 <th className="p-3"></th>
+                <th className="p-3"></th>
               </tr>
             </thead>
 
@@ -189,6 +196,7 @@ export const InventoryTable: FC<Props> = memo(({ rows, onRowClick }) => {
                     <td className="p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Exterior Color</td>
                     <td className="p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Trim</td>
                     <td className="p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Body</td>
+                    <td className="p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"></td>
                     <td className="p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">MSRP</td>
                   </tr>
 
@@ -213,6 +221,11 @@ export const InventoryTable: FC<Props> = memo(({ rows, onRowClick }) => {
                       <td className="p-3 text-sm">{r["Exterior Color"]}</td>
                       <td className="p-3 text-sm">{r.Trim}</td>
                       <td className="p-3 text-sm">{formatBodyDescription(r.Body) || "-"}</td>
+                      <td className="p-3 text-sm">
+                        {isInTransit(r) && (
+                          <span className="text-amber-500 font-semibold">IN TRANSIT</span>
+                        )}
+                      </td>
                       <td className="p-3 text-sm font-medium">${Number(r.MSRP).toLocaleString()}</td>
                     </tr>
                   ))}
