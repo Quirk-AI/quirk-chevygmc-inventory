@@ -2,7 +2,7 @@
 import React, { FC, useMemo, memo } from "react";
 import { InventoryRow } from "../types";
 import { generateVehicleUrl } from "../utils/vehicleUrl";
-import { isInTransit, formatAgeShort, sortByAgeDescending } from "../utils/inventoryUtils";
+import { isInTransit, sortByAgeDescending } from "../utils/inventoryUtils";
 import { shouldSplitByModelNumber, formatBodyDescription } from "../utils/modelFormatting";
 import { useIsMobile } from "../hooks/useMediaQuery";
 import { VirtualizedTable } from "./VirtualizedTable";

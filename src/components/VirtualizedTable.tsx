@@ -3,7 +3,7 @@ import React, { FC, useRef, useMemo, memo, useCallback } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { InventoryRow } from "../types";
 import { generateVehicleUrl } from "../utils/vehicleUrl";
-import { isInTransit, formatAgeShort, sortByAgeDescending } from "../utils/inventoryUtils";
+import { isInTransit, sortByAgeDescending } from "../utils/inventoryUtils";
 import { shouldSplitByModelNumber, formatBodyDescription } from "../utils/modelFormatting";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
