@@ -10,7 +10,7 @@ import {
   rowMatchesModelFilter,
   shouldSplitByModelNumber
 } from "./utils/modelFormatting";
-import { AgingBuckets, DrillType, InventoryRow } from "./types";
+import { AgingBuckets, PriceBuckets, DrillType, InventoryRow } from "./types";
 import {
   DRILL_TYPES,
   DRILL_TITLES,
@@ -85,6 +85,18 @@ const App: FC = () => {
       else if (r.Age <= 60) b.bucket31_60++;
       else if (r.Age <= 90) b.bucket61_90++;
       else b.bucket90_plus++;
+    });
+    return b;
+  }, [validRows]);
+
+  const priceBuckets = useMemo<PriceBuckets>(() => {
+    const b = { under40k: 0, from40kTo60k: 0, from60kTo80k: 0, over80k: 0 };
+    validRows.forEach((r) => {
+      if (r.MSRP <= 0) return;
+      if (r.MSRP < 40000) b.under40k++;
+      else if (r.MSRP < 60000) b.from40kTo60k++;
+      else if (r.MSRP < 80000) b.from60kTo80k++;
+      else b.over80k++;
     });
     return b;
   }, [validRows]);
@@ -193,6 +205,12 @@ const App: FC = () => {
     if (drillType === DRILL_TYPES.AGE_61_90) result = validRows.filter((r) => r.Age > 60 && r.Age <= 90 && !isInTransit(r));
     if (drillType === DRILL_TYPES.AGE_90_PLUS) result = validRows.filter((r) => r.Age > 90 && !isInTransit(r));
 
+    // Price drill types
+    if (drillType === DRILL_TYPES.PRICE_UNDER_40K) result = validRows.filter((r) => r.MSRP > 0 && r.MSRP < 40000);
+    if (drillType === DRILL_TYPES.PRICE_40K_60K) result = validRows.filter((r) => r.MSRP >= 40000 && r.MSRP < 60000);
+    if (drillType === DRILL_TYPES.PRICE_60K_80K) result = validRows.filter((r) => r.MSRP >= 60000 && r.MSRP < 80000);
+    if (drillType === DRILL_TYPES.PRICE_OVER_80K) result = validRows.filter((r) => r.MSRP >= 80000);
+
     // Handle model drill type
     if (drillType.startsWith(MODEL_DRILL_PREFIX)) {
       const modelName = getModelFromDrill(drillType);
@@ -216,11 +234,12 @@ const App: FC = () => {
 
   // Explicit checks for drill types
   const isAgingDrill = drillType === DRILL_TYPES.AGE_0_30 || drillType === DRILL_TYPES.AGE_31_60 || drillType === DRILL_TYPES.AGE_61_90 || drillType === DRILL_TYPES.AGE_90_PLUS;
+  const isPriceDrill = drillType === DRILL_TYPES.PRICE_UNDER_40K || drillType === DRILL_TYPES.PRICE_40K_60K || drillType === DRILL_TYPES.PRICE_60K_80K || drillType === DRILL_TYPES.PRICE_OVER_80K;
   const isNewArrivalsDrill = drillType === DRILL_TYPES.NEW;
   const isInTransitDrill = drillType === DRILL_TYPES.IN_TRANSIT;
   const isInStockDrill = drillType === DRILL_TYPES.IN_STOCK;
   const isModelDrill = isModelDrillType(drillType);
-  const isDrillActive = isAgingDrill || isNewArrivalsDrill || isInTransitDrill || isInStockDrill || isModelDrill;
+  const isDrillActive = isAgingDrill || isPriceDrill || isNewArrivalsDrill || isInTransitDrill || isInStockDrill || isModelDrill;
 
   const handleSmartSearch = useCallback((text: string) => {
     setSearchTerm(text);
@@ -332,12 +351,12 @@ const App: FC = () => {
                 <SectionErrorBoundary section="charts">
                   <ChartsSection
                     modelPieData={modelPieData}
-                    agingBuckets={agingBuckets}
-                    agingHandlers={{
-                      on0_30: () => setDrillType(DRILL_TYPES.AGE_0_30),
-                      on31_60: () => setDrillType(DRILL_TYPES.AGE_31_60),
-                      on61_90: () => setDrillType(DRILL_TYPES.AGE_61_90),
-                      on90_plus: () => setDrillType(DRILL_TYPES.AGE_90_PLUS),
+                    priceBuckets={priceBuckets}
+                    priceHandlers={{
+                      onUnder40k: () => setDrillType(DRILL_TYPES.PRICE_UNDER_40K),
+                      on40kTo60k: () => setDrillType(DRILL_TYPES.PRICE_40K_60K),
+                      on60kTo80k: () => setDrillType(DRILL_TYPES.PRICE_60K_80K),
+                      onOver80k: () => setDrillType(DRILL_TYPES.PRICE_OVER_80K),
                     }}
                     onModelClick={handleModelClick}
                   />
