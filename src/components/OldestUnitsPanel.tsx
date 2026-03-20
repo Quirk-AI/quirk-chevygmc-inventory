@@ -32,7 +32,11 @@ export const OldestUnitsPanel: FC<Props> = ({ rows }) => {
     e.stopPropagation();
     const url = generateVehicleUrl(row);
     if (url) {
-      window.open(url, "_blank", "noopener,noreferrer");
+      const w = 1000;
+      const h = 700;
+      const left = (window.screen.width - w) / 2;
+      const top = (window.screen.height - h) / 2;
+      window.open(url, "vehiclePopup", `width=${w},height=${h},top=${top},left=${left},resizable=yes,scrollbars=yes`);
     }
   };
 
