@@ -1,13 +1,12 @@
 // src/components/FiltersBar.tsx
 import { FC, memo, useMemo } from "react";
-import { Filters, DrillType, InventoryRow, DealerSource } from "../types";
+import { Filters, InventoryRow, DealerSource } from "../types";
 import { ThemeToggle } from "./ui/ThemeToggle";
 import { DEALER_LABELS } from "../inventoryHelpers";
-import { 
-  getModelDisplayName, 
-  shouldSplitByModelNumber 
+import {
+  getModelDisplayName,
+  shouldSplitByModelNumber
 } from "../utils/modelFormatting";
-import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import {
   Select,
@@ -17,21 +16,12 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Card } from "./ui/card";
-import { Search } from "lucide-react";
 
 interface Props {
   models: string[];
   filters: Filters;
   onChange: (f: Partial<Filters>) => void;
-  onSmartSearch: (text: string) => void;
   rows: InventoryRow[];
-  drillType: DrillType;
-  drillData: Record<string, InventoryRow[]> | null;
-  onSetDrillType: (type: DrillType) => void;
-  onRowClick: (row: InventoryRow) => void;
-  onReset: () => void;
-  searchTerm: string;
-  onSearchChange: (value: string) => void;
   selectedMake: DealerSource;
   onMakeChange: (make: DealerSource) => void;
 }
@@ -177,12 +167,8 @@ export const FiltersBar: FC<Props> = memo(({
           />
         </div>
 
-        {/* ACTIONS - Search Button + Theme Toggle */}
+        {/* Theme Toggle */}
         <div className="w-full md:w-auto flex items-end gap-2 md:gap-3 md:ml-auto mt-2 md:mt-0">
-          <Button variant="default" className="gap-2 h-9 md:h-10 flex-1 md:flex-none">
-            <Search className="h-4 w-4" />
-            <span className="md:inline">Search</span>
-          </Button>
           <ThemeToggle />
         </div>
       </div>

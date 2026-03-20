@@ -23,7 +23,6 @@ interface DrilldownResult {
 
 export function useDrilldown(
   drillType: DrillType,
-  validRows: InventoryRow[],
   filteredRows: InventoryRow[],
   inTransitRows: InventoryRow[],
   inStockRows: InventoryRow[]
@@ -48,37 +47,38 @@ export function useDrilldown(
       return groups;
     };
 
+    // All drills use filteredRows so results respect active filters
     if (drillType === DRILL_TYPES.TOTAL) return buildGroups(filteredRows);
     if (drillType === DRILL_TYPES.IN_TRANSIT) return buildGroups(inTransitRows);
     if (drillType === DRILL_TYPES.IN_STOCK) return buildGroups(inStockRows);
 
     let result: InventoryRow[] = [];
-    if (drillType === DRILL_TYPES.NEW) result = validRows.filter((r) => r.Age > 0 && r.Age <= 7 && !isInTransit(r));
-    if (drillType === DRILL_TYPES.AGE_0_30) result = validRows.filter((r) => r.Age <= 30 && !isInTransit(r));
-    if (drillType === DRILL_TYPES.AGE_31_60) result = validRows.filter((r) => r.Age > 30 && r.Age <= 60 && !isInTransit(r));
-    if (drillType === DRILL_TYPES.AGE_61_90) result = validRows.filter((r) => r.Age > 60 && r.Age <= 90 && !isInTransit(r));
-    if (drillType === DRILL_TYPES.AGE_90_PLUS) result = validRows.filter((r) => r.Age > 90 && !isInTransit(r));
+    if (drillType === DRILL_TYPES.NEW) result = filteredRows.filter((r) => r.Age > 0 && r.Age <= 7 && !isInTransit(r));
+    if (drillType === DRILL_TYPES.AGE_0_30) result = filteredRows.filter((r) => r.Age <= 30 && !isInTransit(r));
+    if (drillType === DRILL_TYPES.AGE_31_60) result = filteredRows.filter((r) => r.Age > 30 && r.Age <= 60 && !isInTransit(r));
+    if (drillType === DRILL_TYPES.AGE_61_90) result = filteredRows.filter((r) => r.Age > 60 && r.Age <= 90 && !isInTransit(r));
+    if (drillType === DRILL_TYPES.AGE_90_PLUS) result = filteredRows.filter((r) => r.Age > 90 && !isInTransit(r));
 
     // Price drill types
-    if (drillType === DRILL_TYPES.PRICE_UNDER_40K) result = validRows.filter((r) => r.MSRP > 0 && r.MSRP < 40000);
-    if (drillType === DRILL_TYPES.PRICE_40K_60K) result = validRows.filter((r) => r.MSRP >= 40000 && r.MSRP < 60000);
-    if (drillType === DRILL_TYPES.PRICE_60K_80K) result = validRows.filter((r) => r.MSRP >= 60000 && r.MSRP < 80000);
-    if (drillType === DRILL_TYPES.PRICE_OVER_80K) result = validRows.filter((r) => r.MSRP >= 80000);
+    if (drillType === DRILL_TYPES.PRICE_UNDER_40K) result = filteredRows.filter((r) => r.MSRP > 0 && r.MSRP < 40000);
+    if (drillType === DRILL_TYPES.PRICE_40K_60K) result = filteredRows.filter((r) => r.MSRP >= 40000 && r.MSRP < 60000);
+    if (drillType === DRILL_TYPES.PRICE_60K_80K) result = filteredRows.filter((r) => r.MSRP >= 60000 && r.MSRP < 80000);
+    if (drillType === DRILL_TYPES.PRICE_OVER_80K) result = filteredRows.filter((r) => r.MSRP >= 80000);
 
     // Handle model drill type
     if (drillType.startsWith(MODEL_DRILL_PREFIX)) {
       const modelName = getModelFromDrill(drillType);
-      result = validRows.filter((r) => r.Model === modelName);
+      result = filteredRows.filter((r) => r.Model === modelName);
     }
 
     return buildGroups(result);
-  }, [drillType, validRows, filteredRows, inTransitRows, inStockRows]);
+  }, [drillType, filteredRows, inTransitRows, inStockRows]);
 
-  // Get title for drilldown
+  // Get title for drilldown — count reflects filtered dataset
   const getDrillTitle = (type: string): string => {
     if (type.startsWith(MODEL_DRILL_PREFIX)) {
       const modelName = getModelFromDrill(type);
-      const count = validRows.filter((r) => r.Model === modelName).length;
+      const count = filteredRows.filter((r) => r.Model === modelName).length;
       return `${modelName} Inventory (${count} vehicles)`;
     }
     return DRILL_TITLES[type] ?? "Inventory";
