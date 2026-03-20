@@ -142,10 +142,11 @@ export const VirtualizedTable: FC<Props> = memo(({ rows, onRowClick }) => {
               <tr role="row">
                 <th role="columnheader" className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "12%" }}>Stock #</th>
                 <th role="columnheader" className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "8%" }}>Year</th>
-                <th role="columnheader" className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "20%" }}>Model</th>
-                <th role="columnheader" className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "16%" }}>Exterior</th>
-                <th role="columnheader" className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "20%" }}>Trim</th>
-                <th role="columnheader" className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "12%" }}>Body</th>
+                <th role="columnheader" className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "18%" }}>Model</th>
+                <th role="columnheader" className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "14%" }}>Exterior</th>
+                <th role="columnheader" className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "18%" }}>Trim</th>
+                <th role="columnheader" className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "10%" }}>Body</th>
+                <th role="columnheader" className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "8%" }}></th>
                 <th role="columnheader" className="text-left p-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground" style={{ width: "12%" }}>MSRP</th>
               </tr>
             </thead>
@@ -215,10 +216,15 @@ export const VirtualizedTable: FC<Props> = memo(({ rows, onRowClick }) => {
                           </span>
                         </td>
                         <td className="p-3 text-sm" style={{ width: "8%" }}>{r.Year}</td>
-                        <td className="p-3 text-sm" style={{ width: "20%" }}>{r.Model}</td>
-                        <td className="p-3 text-sm" style={{ width: "16%" }}>{r["Exterior Color"]}</td>
-                        <td className="p-3 text-sm" style={{ width: "20%" }}>{r.Trim}</td>
-                        <td className="p-3 text-sm" style={{ width: "12%" }}>{formatBodyDescription(r.Body) || "-"}</td>
+                        <td className="p-3 text-sm" style={{ width: "18%" }}>{r.Model}</td>
+                        <td className="p-3 text-sm" style={{ width: "14%" }}>{r["Exterior Color"]}</td>
+                        <td className="p-3 text-sm" style={{ width: "18%" }}>{r.Trim}</td>
+                        <td className="p-3 text-sm" style={{ width: "10%" }}>{formatBodyDescription(r.Body) || "-"}</td>
+                        <td className="p-3 text-sm" style={{ width: "8%" }}>
+                          {isInTransit(r) && (
+                            <span className="text-amber-500 font-semibold">IN TRANSIT</span>
+                          )}
+                        </td>
                         <td className="p-3 text-sm font-medium" style={{ width: "12%" }}>
                           ${Number(r.MSRP).toLocaleString()}
                         </td>
