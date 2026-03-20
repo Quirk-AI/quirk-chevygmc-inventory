@@ -32,6 +32,13 @@ export type AgingBuckets = {
   bucket90_plus: number;
 };
 
+export type PriceBuckets = {
+  under40k: number;
+  from40kTo60k: number;
+  from60kTo80k: number;
+  over80k: number;
+};
+
 export type DrillType =
   | null
   | "total"
@@ -42,6 +49,10 @@ export type DrillType =
   | "90_plus"
   | "in_transit"
   | "in_stock"
+  | "price_under_40k"
+  | "price_40k_60k"
+  | "price_60k_80k"
+  | "price_over_80k"
   | `model:${string}`;
 
 export type Filters = {
