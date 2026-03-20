@@ -81,7 +81,7 @@ const App: FC = () => {
   } = useInventoryMetrics(validRows);
 
   const {
-    sortedRows, filteredRows, filteredNewArrivals, filteredInTransit
+    filteredRows, filteredNewArrivals, filteredInTransit
   } = useFilteredInventory(validRows, filters);
 
   const {
