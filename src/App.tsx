@@ -161,10 +161,6 @@ const App: FC = () => {
       .slice(0, 8);
   }, [validRows]);
 
-  const newArrivalRows = useMemo(() => {
-    return validRows.filter((r) => r.Age > 0 && r.Age <= 7 && !isInTransit(r));
-  }, [validRows]);
-
   const inTransitRows = useMemo(() => {
     return validRows.filter((r) => isInTransit(r));
   }, [validRows]);
@@ -199,7 +195,7 @@ const App: FC = () => {
     if (drillType === DRILL_TYPES.IN_STOCK) return buildGroups(inStockRows);
 
     let result: InventoryRow[] = [];
-    if (drillType === DRILL_TYPES.NEW) result = [...newArrivalRows];
+    if (drillType === DRILL_TYPES.NEW) result = validRows.filter((r) => r.Age > 0 && r.Age <= 7 && !isInTransit(r));
     if (drillType === DRILL_TYPES.AGE_0_30) result = validRows.filter((r) => r.Age <= 30 && !isInTransit(r));
     if (drillType === DRILL_TYPES.AGE_31_60) result = validRows.filter((r) => r.Age > 30 && r.Age <= 60 && !isInTransit(r));
     if (drillType === DRILL_TYPES.AGE_61_90) result = validRows.filter((r) => r.Age > 60 && r.Age <= 90 && !isInTransit(r));
@@ -218,7 +214,7 @@ const App: FC = () => {
     }
 
     return buildGroups(result);
-  }, [drillType, validRows, filteredRows, newArrivalRows, inTransitRows, inStockRows]);
+  }, [drillType, validRows, filteredRows, inTransitRows, inStockRows]);
 
   // Get title for drilldown
   const getDrillTitle = (type: string): string => {
