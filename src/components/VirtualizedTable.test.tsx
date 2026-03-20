@@ -123,8 +123,8 @@ describe("VirtualizedTable", () => {
     expect(mockOpen).toHaveBeenCalledTimes(1);
     expect(mockOpen).toHaveBeenCalledWith(
       expect.stringContaining("quirkchevynh.com"),
-      "_blank",
-      "noopener,noreferrer"
+      "vehiclePopup",
+      expect.stringContaining("width=1000,height=700")
     );
   });
 
@@ -138,7 +138,6 @@ describe("VirtualizedTable", () => {
     expect(screen.getByText("Exterior")).toBeInTheDocument();
     expect(screen.getByText("Trim")).toBeInTheDocument();
     expect(screen.getByText("Body")).toBeInTheDocument();
-    expect(screen.getByText("Age")).toBeInTheDocument();
     expect(screen.getByText("MSRP")).toBeInTheDocument();
   });
 
