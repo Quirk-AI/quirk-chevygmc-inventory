@@ -30,12 +30,17 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     target: "ES2022",
-    sourcemap: true,
+    // Source maps disabled for production — internal tool served on Netlify.
+    // Enable temporarily with: VITE_SOURCEMAP=true npm run build
+    sourcemap: !!process.env.VITE_SOURCEMAP,
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks: {
-          "vendor-react": ["react", "react-dom"],
+          // Large vendored libraries split into separate cacheable chunks.
+          // react/react-dom are NOT listed here — the Vite React plugin
+          // handles them via optimized deps, and manual chunking produces
+          // an empty vendor-react artifact.
           "vendor-charts": ["recharts"],
           "vendor-xlsx": ["xlsx"],
           "vendor-virtual": ["@tanstack/react-virtual"],
