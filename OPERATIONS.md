@@ -111,6 +111,12 @@ npm run test     # Unit/integration tests
 
 ---
 
-## Security Note
+## Security and Deployment Posture
 
-Inventory Excel files are served as static assets from `/public/`. Anyone with the deployed URL can download them directly. This is acceptable for internal use but not appropriate if the data or audience becomes more sensitive. See `docs/ADR-001-inventory-data-source.md` for details and migration path.
+This dashboard is an **internal pilot tool**. It is not production-hardened.
+
+- Inventory Excel files are served as static assets from `/public/` — anyone with the deployed URL can download them directly
+- There is no user authentication or access control
+- The data source can be swapped to an authenticated API by implementing a new `InventoryService` in `src/services/` and updating the dispatcher in `inventoryService.ts`
+
+This is acceptable for internal use but not appropriate if the data or audience becomes more sensitive. See `docs/ADR-001-inventory-data-source.md` for details and migration path.

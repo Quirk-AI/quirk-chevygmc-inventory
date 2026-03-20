@@ -37,7 +37,9 @@ src/
 ├── types.ts                      # Core types: InventoryRow, DrillType, PriceBuckets, etc.
 ├── store/inventoryStore.ts       # Zustand — single flat store
 ├── constants/drillTypes.ts       # Drill type constants, titles, model prefix helpers
-├── services/inventoryService.ts  # Excel fetch + parse (InventoryService interface)
+├── services/
+│   ├── inventoryService.ts       # InventoryService interface + active source dispatcher
+│   └── staticInventorySource.ts  # Static Excel loader (demo/internal-pilot mode)
 ├── hooks/
 │   ├── useInventoryLoader.ts     # Stale-while-revalidate fetch + localStorage cache
 │   ├── useInventoryMetrics.ts    # KPI metrics, price/aging buckets, model pie data

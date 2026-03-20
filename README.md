@@ -80,7 +80,9 @@ src/
 ├── types.ts                      # Core types
 ├── store/inventoryStore.ts       # Zustand state
 ├── constants/drillTypes.ts       # Drill type constants
-├── services/inventoryService.ts  # Excel fetch + parse
+├── services/
+│   ├── inventoryService.ts       # Service interface + active source dispatcher
+│   └── staticInventorySource.ts  # Static Excel loader (demo/pilot mode)
 ├── hooks/
 │   ├── useInventoryLoader.ts     # Stale-while-revalidate fetch + cache
 │   ├── useInventoryMetrics.ts    # KPI metrics, price buckets, model pie data
@@ -108,6 +110,16 @@ src/
 │   └── inventoryUtils.ts         # isInTransit, formatAge, sortByAgeDescending
 └── styles/                       # CSS modules
 ```
+
+---
+
+## Deployment maturity
+
+This is an **internal pilot tool** with production-minded front-end structure. It is not a fully production-grade system.
+
+- **What works well:** UI, filtering, drilldowns, aging analysis, model normalization, responsive layout, test coverage
+- **What is demo/pilot architecture:** Static Excel files served from `/public/`, no authentication, no backend
+- **What would need to change for protected production:** Authenticated API data source (the `InventoryService` interface in `inventoryService.ts` is designed for this swap), access control, server-side data delivery
 
 ---
 

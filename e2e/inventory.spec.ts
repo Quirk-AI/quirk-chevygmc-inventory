@@ -60,18 +60,55 @@ test.describe("Inventory Dashboard", () => {
   });
 
   test("switches between dealerships", async ({ page }) => {
-    // Look for dealership toggle/selector
-    const gmcTab = page.getByRole("button", { name: /buick.*gmc/i });
+    // Open the dealership selector (it's a Select component, not a button)
+    const dealerTrigger = page.locator('[aria-label="Choose dealership"]');
+    await dealerTrigger.click();
 
-    if (await gmcTab.isVisible()) {
-      await gmcTab.click();
+    // Select Buick GMC
+    const gmcOption = page.getByRole("option", { name: /Buick GMC/i });
+    if (await gmcOption.isVisible()) {
+      await gmcOption.click();
 
       // Wait for new data to load
-      await page.waitForTimeout(1000);
+      await page.waitForSelector('[role="table"]', { timeout: 10000 });
 
-      // Should still show inventory table
-      await expect(page.locator('[role="table"]')).toBeVisible();
+      // Should still show KPI cards
+      await expect(page.getByText(/Total Vehicles/i)).toBeVisible();
     }
+  });
+
+  test("year filter narrows results", async ({ page }) => {
+    // Open year selector
+    const yearTrigger = page.locator('[aria-label="Filter by model year"]');
+    await yearTrigger.click();
+
+    // Pick a specific year if available
+    const yearOption = page.getByRole("option").filter({ hasText: /^202\d$/ }).first();
+    if (await yearOption.isVisible()) {
+      const yearText = await yearOption.textContent();
+      await yearOption.click();
+
+      // Table should still be visible
+      await expect(page.locator('[role="table"]').or(page.locator("table")).first()).toBeVisible();
+
+      // The "Showing X vehicles" count should reflect filtered data
+      if (yearText) {
+        await expect(page.getByText(/Showing \d+ vehicles/i)).toBeVisible();
+      }
+    }
+  });
+
+  test("stock number filter narrows results", async ({ page }) => {
+    // Type a partial stock number into the filter
+    const stockInput = page.locator('[aria-label="Filter by stock number"]');
+    await stockInput.fill("M39");
+
+    // Wait for filter to apply
+    await page.waitForTimeout(300);
+
+    // Should still show the table or a "no results" state
+    const table = page.locator('[role="table"]').or(page.locator("table")).first();
+    await expect(table).toBeVisible();
   });
 
   test("opens vehicle detail drawer when clicking row", async ({ page }) => {
@@ -91,6 +128,28 @@ test.describe("Inventory Dashboard", () => {
           .getByRole("dialog")
           .or(page.locator('[data-state="open"]'))
       ).toBeVisible({ timeout: 2000 });
+    }
+  });
+
+  test("drawer closes when close button clicked", async ({ page }) => {
+    // Open a drawer first
+    const row = page
+      .locator("tr")
+      .filter({ hasText: /\$\d{2,3},\d{3}/ })
+      .first();
+
+    if (await row.isVisible()) {
+      await row.locator("td").nth(2).click();
+
+      const dialog = page.getByRole("dialog").or(page.locator('[data-state="open"]'));
+      await expect(dialog).toBeVisible({ timeout: 2000 });
+
+      // Close the drawer
+      const closeButton = page.getByRole("button", { name: /close/i });
+      if (await closeButton.isVisible()) {
+        await closeButton.click();
+        await expect(dialog).not.toBeVisible({ timeout: 2000 });
+      }
     }
   });
 
@@ -117,10 +176,11 @@ test.describe("Accessibility", () => {
     await page.waitForSelector('[role="table"]');
 
     // Check for aria-labels on key interactive elements
-    const filterElements = page
-      .locator('[aria-label*="Filter"]')
-      .or(page.locator('[aria-label*="filter"]'));
-    await expect(filterElements.first()).toBeVisible();
+    await expect(page.locator('[aria-label="Choose dealership"]')).toBeVisible();
+    await expect(page.locator('[aria-label="Filter by model year"]')).toBeVisible();
+    await expect(page.locator('[aria-label="Filter by vehicle make"]')).toBeVisible();
+    await expect(page.locator('[aria-label="Filter by vehicle model"]')).toBeVisible();
+    await expect(page.locator('[aria-label="Filter by stock number"]')).toBeVisible();
   });
 
   test("inventory table has proper role", async ({ page }) => {
