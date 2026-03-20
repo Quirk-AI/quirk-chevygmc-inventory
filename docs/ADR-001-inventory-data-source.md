@@ -82,6 +82,35 @@ PBS Dealer Systems
 
 ---
 
+## Security and Deployment Posture
+
+### Current reality
+
+Inventory Excel files are served from `/public/` as static assets. **Anyone with access to the deployed URL can download these files directly** (e.g., `https://chevynhinventory.netlify.app/inventory.xlsx`). There is no authentication, access control, or download restriction.
+
+### Risk assessment
+
+The data contains: stock numbers, model years, makes, models, trim levels, VINs, MSRP pricing, and aging information. This is **operational dealership data** — not customer PII, but also not intended for public consumption.
+
+For the current use case (internal dealership tool with a limited audience), this is an accepted tradeoff. The Netlify deployment is not indexed by search engines and the URL is shared only internally.
+
+### What this means
+
+- This deployment model is appropriate for **internal/demo use only**
+- It is **not appropriate** for sensitive operational data without additional protections
+- If the audience expands or the data becomes more sensitive, authentication must be added
+
+### Future migration path
+
+The codebase is prepared for a safer ingestion model:
+
+- `src/services/inventoryService.ts` defines an `InventoryService` interface
+- Swapping `excelInventoryService` for an `apiInventoryService` requires no UI changes
+- Data transformation logic is centralized in the service layer
+- A future authenticated API could replace the static file fetch without restructuring the app
+
+---
+
 ## Consequences
 
 ### Positive
@@ -94,14 +123,7 @@ PBS Dealer Systems
 - Data is up to 24 hours stale (acceptable per business requirements)
 - Manual upload step required (mitigated by automated PBS report generation)
 - No real-time inventory sync across systems
-
-### Future Considerations
-
-If PBS releases a modern REST API or Quirk negotiates an enterprise integration package, the codebase is prepared for migration:
-
-- `src/services/inventoryService.ts` defines an `InventoryService` interface
-- Swapping `excelInventoryService` for `apiInventoryService` requires no UI changes
-- Data transformation logic is centralized in the service layer
+- Inventory files are publicly downloadable by anyone with the URL
 
 ---
 
@@ -118,3 +140,4 @@ If PBS releases a modern REST API or Quirk negotiates an enterprise integration 
 | Date | Author | Change |
 |------|--------|--------|
 | 2024-12-01 | Michael Palmer | Initial decision documented |
+| 2026-03-20 | Remediation | Added security posture section, documented public file exposure |
