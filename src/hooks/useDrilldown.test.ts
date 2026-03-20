@@ -20,22 +20,25 @@ const createMockRow = (overrides: Partial<InventoryRow> = {}): InventoryRow => (
   ...overrides,
 });
 
-const validRows = [
-  createMockRow({ "Stock Number": "A", MSRP: 35000, Age: 5, Model: "EQUINOX" }),
-  createMockRow({ "Stock Number": "B", MSRP: 55000, Age: 45, Model: "SILVERADO 1500" }),
-  createMockRow({ "Stock Number": "C", MSRP: 75000, Age: 10, Status: "IN TRANSIT", Model: "TAHOE" }),
-  createMockRow({ "Stock Number": "D", MSRP: 90000, Age: 100, Model: "CORVETTE" }),
+const allRows = [
+  createMockRow({ "Stock Number": "A", MSRP: 35000, Age: 5, Model: "EQUINOX", Year: 2025 }),
+  createMockRow({ "Stock Number": "B", MSRP: 55000, Age: 45, Model: "SILVERADO 1500", Year: 2026 }),
+  createMockRow({ "Stock Number": "C", MSRP: 75000, Age: 10, Status: "IN TRANSIT", Model: "TAHOE", Year: 2026 }),
+  createMockRow({ "Stock Number": "D", MSRP: 90000, Age: 100, Model: "CORVETTE", Year: 2025 }),
 ];
 
-const filteredRows = validRows;
-const inTransitRows = validRows.filter((r) => r.Status === "IN TRANSIT");
-const inStockRows = validRows.filter((r) => r.Status !== "IN TRANSIT");
+// Simulate a filtered subset (e.g., year=2026 only)
+const filteredRows2026 = allRows.filter((r) => r.Year === 2026);
+
+const filteredRows = allRows;
+const inTransitRows = allRows.filter((r) => r.Status === "IN TRANSIT");
+const inStockRows = allRows.filter((r) => r.Status !== "IN TRANSIT");
 
 describe("useDrilldown", () => {
   describe("drillData", () => {
     it("returns null when drillType is null", () => {
       const { result } = renderHook(() =>
-        useDrilldown(null, validRows, filteredRows, inTransitRows, inStockRows)
+        useDrilldown(null, filteredRows, inTransitRows, inStockRows)
       );
       expect(result.current.drillData).toBeNull();
     });
@@ -44,55 +47,127 @@ describe("useDrilldown", () => {
       const { result } = renderHook(() =>
         useDrilldown(
           DRILL_TYPES.PRICE_UNDER_40K as DrillType,
-          validRows,
           filteredRows,
           inTransitRows,
           inStockRows
         )
       );
       expect(result.current.drillData).not.toBeNull();
-      const allRows = Object.values(result.current.drillData!).flat();
-      expect(allRows).toHaveLength(1);
-      expect(allRows[0]?.["Stock Number"]).toBe("A");
-      expect(allRows.every((r) => r.MSRP > 0 && r.MSRP < 40000)).toBe(true);
+      const allDrillRows = Object.values(result.current.drillData!).flat();
+      expect(allDrillRows).toHaveLength(1);
+      expect(allDrillRows[0]?.["Stock Number"]).toBe("A");
+      expect(allDrillRows.every((r) => r.MSRP > 0 && r.MSRP < 40000)).toBe(true);
     });
 
     it("model drill returns only matching model", () => {
       const { result } = renderHook(() =>
         useDrilldown(
           "model:EQUINOX" as DrillType,
-          validRows,
           filteredRows,
           inTransitRows,
           inStockRows
         )
       );
       expect(result.current.drillData).not.toBeNull();
-      const allRows = Object.values(result.current.drillData!).flat();
-      expect(allRows).toHaveLength(1);
-      expect(allRows.every((r) => r.Model === "EQUINOX")).toBe(true);
+      const allDrillRows = Object.values(result.current.drillData!).flat();
+      expect(allDrillRows).toHaveLength(1);
+      expect(allDrillRows.every((r) => r.Model === "EQUINOX")).toBe(true);
     });
 
     it("IN_TRANSIT drill returns only transit vehicles", () => {
       const { result } = renderHook(() =>
         useDrilldown(
           DRILL_TYPES.IN_TRANSIT as DrillType,
-          validRows,
           filteredRows,
           inTransitRows,
           inStockRows
         )
       );
-      const allRows = Object.values(result.current.drillData!).flat();
-      expect(allRows).toHaveLength(1);
-      expect(allRows[0]?.["Stock Number"]).toBe("C");
+      const allDrillRows = Object.values(result.current.drillData!).flat();
+      expect(allDrillRows).toHaveLength(1);
+      expect(allDrillRows[0]?.["Stock Number"]).toBe("C");
+    });
+  });
+
+  describe("drills respect active filters", () => {
+    it("aging drilldown respects year filter", () => {
+      // Only 2026 rows: B (age 45, on lot) and C (age 10, in transit)
+      const { result } = renderHook(() =>
+        useDrilldown(
+          DRILL_TYPES.AGE_31_60 as DrillType,
+          filteredRows2026,
+          inTransitRows,
+          inStockRows
+        )
+      );
+      const allDrillRows = Object.values(result.current.drillData!).flat();
+      // Only B qualifies (age 45, not transit, year 2026)
+      expect(allDrillRows).toHaveLength(1);
+      expect(allDrillRows[0]?.["Stock Number"]).toBe("B");
+    });
+
+    it("price drilldown respects filtered dataset", () => {
+      // Only 2026 rows: B (MSRP 55000) and C (MSRP 75000)
+      const { result } = renderHook(() =>
+        useDrilldown(
+          DRILL_TYPES.PRICE_UNDER_40K as DrillType,
+          filteredRows2026,
+          inTransitRows,
+          inStockRows
+        )
+      );
+      const allDrillRows = Object.values(result.current.drillData!).flat();
+      // A (MSRP 35000) is year 2025, filtered out
+      expect(allDrillRows).toHaveLength(0);
+    });
+
+    it("model drilldown respects filtered dataset", () => {
+      // Only 2026 rows — no EQUINOX (it's 2025)
+      const { result } = renderHook(() =>
+        useDrilldown(
+          "model:EQUINOX" as DrillType,
+          filteredRows2026,
+          inTransitRows,
+          inStockRows
+        )
+      );
+      const allDrillRows = Object.values(result.current.drillData!).flat();
+      expect(allDrillRows).toHaveLength(0);
+    });
+
+    it("TOTAL drill reflects filtered rows", () => {
+      const { result } = renderHook(() =>
+        useDrilldown(
+          DRILL_TYPES.TOTAL as DrillType,
+          filteredRows2026,
+          inTransitRows,
+          inStockRows
+        )
+      );
+      const allDrillRows = Object.values(result.current.drillData!).flat();
+      expect(allDrillRows).toHaveLength(2); // B and C only
+    });
+
+    it("new arrivals drilldown respects filtered dataset", () => {
+      // A (age 5, 2025) would match new arrivals, but is filtered out for 2026
+      // C (age 10, 2026) is in transit so excluded from new arrivals
+      const { result } = renderHook(() =>
+        useDrilldown(
+          DRILL_TYPES.NEW as DrillType,
+          filteredRows2026,
+          inTransitRows,
+          inStockRows
+        )
+      );
+      const allDrillRows = Object.values(result.current.drillData!).flat();
+      expect(allDrillRows).toHaveLength(0);
     });
   });
 
   describe("isDrillActive", () => {
     it("is false when drillType is null", () => {
       const { result } = renderHook(() =>
-        useDrilldown(null, validRows, filteredRows, inTransitRows, inStockRows)
+        useDrilldown(null, filteredRows, inTransitRows, inStockRows)
       );
       expect(result.current.isDrillActive).toBe(false);
     });
@@ -101,7 +176,6 @@ describe("useDrilldown", () => {
       const { result } = renderHook(() =>
         useDrilldown(
           DRILL_TYPES.AGE_0_30 as DrillType,
-          validRows,
           filteredRows,
           inTransitRows,
           inStockRows
@@ -115,7 +189,6 @@ describe("useDrilldown", () => {
       const { result } = renderHook(() =>
         useDrilldown(
           DRILL_TYPES.PRICE_UNDER_40K as DrillType,
-          validRows,
           filteredRows,
           inTransitRows,
           inStockRows
@@ -129,7 +202,6 @@ describe("useDrilldown", () => {
       const { result } = renderHook(() =>
         useDrilldown(
           DRILL_TYPES.NEW as DrillType,
-          validRows,
           filteredRows,
           inTransitRows,
           inStockRows
@@ -143,7 +215,6 @@ describe("useDrilldown", () => {
       const { result } = renderHook(() =>
         useDrilldown(
           DRILL_TYPES.IN_TRANSIT as DrillType,
-          validRows,
           filteredRows,
           inTransitRows,
           inStockRows
@@ -157,7 +228,6 @@ describe("useDrilldown", () => {
       const { result } = renderHook(() =>
         useDrilldown(
           DRILL_TYPES.IN_STOCK as DrillType,
-          validRows,
           filteredRows,
           inTransitRows,
           inStockRows
@@ -171,7 +241,6 @@ describe("useDrilldown", () => {
       const { result } = renderHook(() =>
         useDrilldown(
           "model:SILVERADO 1500" as DrillType,
-          validRows,
           filteredRows,
           inTransitRows,
           inStockRows
@@ -187,7 +256,6 @@ describe("useDrilldown", () => {
       const { result } = renderHook(() =>
         useDrilldown(
           "model:EQUINOX" as DrillType,
-          validRows,
           filteredRows,
           inTransitRows,
           inStockRows
@@ -200,7 +268,7 @@ describe("useDrilldown", () => {
 
     it("returns standard title for known drill types", () => {
       const { result } = renderHook(() =>
-        useDrilldown(null, validRows, filteredRows, inTransitRows, inStockRows)
+        useDrilldown(null, filteredRows, inTransitRows, inStockRows)
       );
       expect(result.current.getDrillTitle(DRILL_TYPES.AGE_0_30)).toBe(
         "Fresh Inventory (0-30 Days)"

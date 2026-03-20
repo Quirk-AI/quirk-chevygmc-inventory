@@ -10,10 +10,9 @@ import { Clock, ExternalLink } from "lucide-react";
 
 interface Props {
   rows: InventoryRow[];
-  onRowClick: (row: InventoryRow) => void;
 }
 
-export const OldestUnitsPanel: FC<Props> = ({ rows, onRowClick: _onRowClick }) => {
+export const OldestUnitsPanel: FC<Props> = ({ rows }) => {
   const oldestUnits = useMemo(() => {
     return [...rows]
       .filter((r) => !isInTransit(r) && r.Age > 0)

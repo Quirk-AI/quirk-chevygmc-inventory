@@ -30,11 +30,6 @@ import { VehicleDetailDrawer } from "./components/VehicleDetailDrawer";
 import { LoadingIndicator } from "./components/LoadingIndicator";
 import { StaleIndicator } from "./components/StaleIndicator";
 
-const STOP_WORDS = new Set([
-  "i", "im", "i'm", "looking", "for", "to", "the", "a", "an",
-  "with", "show", "me", "find", "need", "want", "please",
-]);
-
 const App: FC = () => {
   const { refetch } = useInventoryLoader();
 
@@ -45,13 +40,11 @@ const App: FC = () => {
   const lastUpdated = useInventoryStore((s) => s.lastUpdated);
   const isRefreshing = useInventoryStore((s) => s.isRefreshing);
   const filters = useInventoryStore((s) => s.filters);
-  const searchTerm = useInventoryStore((s) => s.searchTerm);
   const drillType = useInventoryStore((s) => s.drillType);
   const selectedVehicle = useInventoryStore((s) => s.selectedVehicle);
   const selectedMake = useInventoryStore((s) => s.selectedMake);
 
   const setFilters = useInventoryStore((s) => s.setFilters);
-  const setSearchTerm = useInventoryStore((s) => s.setSearchTerm);
   const setDrillType = useInventoryStore((s) => s.setDrillType);
   const setSelectedVehicle = useInventoryStore((s) => s.setSelectedVehicle);
   const setSelectedMake = useInventoryStore((s) => s.setSelectedMake);
@@ -76,33 +69,19 @@ const App: FC = () => {
   }, [validRows]);
 
   const {
-    priceBuckets, modelPieData,
-    inTransitRows, inStockRows
-  } = useInventoryMetrics(validRows);
-
-  const {
     filteredRows, filteredNewArrivals, filteredInTransit
   } = useFilteredInventory(validRows, filters);
 
   const {
+    priceBuckets, modelPieData,
+    inTransitRows, inStockRows
+  } = useInventoryMetrics(filteredRows);
+
+  const {
     drillData, getDrillTitle, isDrillActive,
-  } = useDrilldown(drillType, validRows, filteredRows, inTransitRows, inStockRows);
+  } = useDrilldown(drillType, filteredRows, inTransitRows, inStockRows);
 
   const hasModelFilter = !!filters.model;
-
-  const handleSmartSearch = useCallback((text: string) => {
-    setSearchTerm(text);
-    const tokens = text.toLowerCase().split(/\s+/).filter((t) => t && !STOP_WORDS.has(t));
-    if (tokens.length === 0) {
-      setFilters({ model: "" });
-      return;
-    }
-    const token = tokens[0];
-    if (token) {
-      const found = modelsList.find((m: string) => m.toLowerCase().includes(token));
-      if (found) setFilters({ model: found });
-    }
-  }, [modelsList, setFilters, setSearchTerm]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -153,15 +132,7 @@ const App: FC = () => {
                 models={modelsList}
                 filters={filters}
                 onChange={setFilters}
-                onSmartSearch={handleSmartSearch}
                 rows={validRows}
-                drillType={drillType}
-                drillData={drillData}
-                onSetDrillType={setDrillType}
-                onRowClick={setSelectedVehicle}
-                onReset={resetAll}
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
                 selectedMake={selectedMake}
                 onMakeChange={setSelectedMake}
               />
@@ -220,7 +191,7 @@ const App: FC = () => {
               {/* Oldest Units Panel - show when not drilling and no model filter */}
               {!isDrillActive && !filters.model && (
                 <SectionErrorBoundary section="oldest units">
-                  <OldestUnitsPanel rows={validRows} onRowClick={setSelectedVehicle} />
+                  <OldestUnitsPanel rows={filteredRows} />
                 </SectionErrorBoundary>
               )}
 
@@ -228,17 +199,6 @@ const App: FC = () => {
               {!isDrillActive && (
                 <SectionErrorBoundary section="inventory table">
                   <InventoryTable rows={filteredRows} onRowClick={setSelectedVehicle} />
-                </SectionErrorBoundary>
-              )}
-
-              {/* Total drilldown (legacy) */}
-              {drillType === DRILL_TYPES.TOTAL && drillData && (
-                <SectionErrorBoundary section="drilldown">
-                  <DrilldownTable
-                    groups={drillData}
-                    onBack={() => setDrillType(null)}
-                    onRowClick={setSelectedVehicle}
-                  />
                 </SectionErrorBoundary>
               )}
 
