@@ -22,7 +22,7 @@ export default async (request: Request, _context: Context) => {
     });
   }
 
-  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return new Response(
       JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }),
@@ -48,7 +48,7 @@ export default async (request: Request, _context: Context) => {
       );
     }
 
-    const systemPrompt = `You are a friendly, knowledgeable vehicle sales assistant for Quirk ${dealership}${dealership === "Buick GMC" ? " in Manchester, NH" : " in Manchester, NH"}.
+    const systemPrompt = `You are a friendly, knowledgeable vehicle sales assistant for Quirk ${dealership} in Manchester, NH.
 
 Your job is to help customers find the perfect vehicle from the current inventory. Be warm, conversational, and helpful — like a great salesperson who genuinely wants to help.
 
