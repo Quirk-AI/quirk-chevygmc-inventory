@@ -29,6 +29,7 @@ import { DrilldownTable } from "./components/DrilldownTable";
 import { VehicleDetailDrawer } from "./components/VehicleDetailDrawer";
 import { LoadingIndicator } from "./components/LoadingIndicator";
 import { StaleIndicator } from "./components/StaleIndicator";
+import { ChatBubble } from "./components/ChatBubble";
 
 const App: FC = () => {
   const { refetch } = useInventoryLoader();
@@ -209,6 +210,7 @@ const App: FC = () => {
             </>
           )}
         </main>
+        {!isDrillActive && <ChatBubble />}
       </div>
     </ErrorBoundary>
   );
