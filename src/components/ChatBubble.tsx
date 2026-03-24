@@ -2,7 +2,6 @@
 import { FC, useState, useRef, useEffect, useCallback } from "react";
 import { MessageCircle, X, Send, Loader2, Search } from "lucide-react";
 import { useInventoryStore } from "../store/inventoryStore";
-import { DEALER_LABELS } from "../inventoryHelpers";
 import { INVENTORY_PATHS } from "../services/inventoryService";
 import * as XLSX from "xlsx";
 import { DealerSource, InventoryRow } from "../types";
@@ -24,70 +23,70 @@ function inventoryToText(rows: InventoryRow[]): string {
   return `Total vehicles: ${rows.length}\n\n${lines.join("\n")}`;
 }
 
+// Parse a single XLSX file into InventoryRow[]
+async function parseInventoryFile(path: string): Promise<InventoryRow[]> {
+  const resp = await fetch(path);
+  if (!resp.ok) throw new Error(`Failed to fetch ${path}`);
+  const buf = await resp.arrayBuffer();
+  const wb = XLSX.read(buf, { type: "array" });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  if (!ws) throw new Error("No worksheet");
+  const raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws);
+  return raw
+    .filter((r) => r["Stock Number"] != null && String(r["Stock Number"]).trim() !== "")
+    .map((r) => ({
+      "Stock Number": String(r["Stock Number"] ?? ""),
+      Year: Number(r["Year"]) || 0,
+      Make: String(r["Make"] ?? ""),
+      Model: String(r["Model"] ?? ""),
+      "Exterior Color": String(r["Exterior Color"] ?? ""),
+      Trim: String(r["Trim"] ?? ""),
+      "Model Number": String(r["Model Number"] ?? ""),
+      Cylinders: Number(r["Cylinders"]) || 0,
+      Age: Number(r["Age"]) || 0,
+      MSRP: Number(r["MSRP"]) || 0,
+      Status: String(r["Category"] ?? ""),
+      VIN: String(r["VIN"] ?? ""),
+      Body: String(r["Body"] ?? ""),
+      "Body Type": String(r["Body Type"] ?? ""),
+      Category: String(r["Category"] ?? ""),
+    }));
+}
+
 export const ChatBubble: FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [inventoryText, setInventoryText] = useState("");
-  const [inventoryLoaded, setInventoryLoaded] = useState<DealerSource | null>(null);
+  const [inventoryLoaded, setInventoryLoaded] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const selectedMake = useInventoryStore((s) => s.selectedMake);
-  const dealerLabel = DEALER_LABELS[selectedMake];
 
-  // Load and parse inventory XLSX for the AI context
-  const loadInventoryForAI = useCallback(async (make: DealerSource) => {
+  // Load and merge BOTH inventory XLSX files for the AI context
+  const loadAllInventory = useCallback(async () => {
     try {
-      const path = INVENTORY_PATHS[make];
-      const resp = await fetch(path);
-      if (!resp.ok) throw new Error("Failed to fetch inventory");
-      const buf = await resp.arrayBuffer();
-      const wb = XLSX.read(buf, { type: "array" });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      if (!ws) throw new Error("No worksheet");
-      const raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws);
-      const rows: InventoryRow[] = raw
-        .filter((r) => r["Stock Number"] != null && String(r["Stock Number"]).trim() !== "")
-        .map((r) => ({
-          "Stock Number": String(r["Stock Number"] ?? ""),
-          Year: Number(r["Year"]) || 0,
-          Make: String(r["Make"] ?? ""),
-          Model: String(r["Model"] ?? ""),
-          "Exterior Color": String(r["Exterior Color"] ?? ""),
-          Trim: String(r["Trim"] ?? ""),
-          "Model Number": String(r["Model Number"] ?? ""),
-          Cylinders: Number(r["Cylinders"]) || 0,
-          Age: Number(r["Age"]) || 0,
-          MSRP: Number(r["MSRP"]) || 0,
-          Status: String(r["Category"] ?? ""),
-          VIN: String(r["VIN"] ?? ""),
-          Body: String(r["Body"] ?? ""),
-          "Body Type": String(r["Body Type"] ?? ""),
-          Category: String(r["Category"] ?? ""),
-        }));
-      setInventoryText(inventoryToText(rows));
-      setInventoryLoaded(make);
+      const [chevyRows, gmcRows] = await Promise.all([
+        parseInventoryFile(INVENTORY_PATHS["chevrolet"]),
+        parseInventoryFile(INVENTORY_PATHS["buick-gmc"]),
+      ]);
+      const allRows = [...chevyRows, ...gmcRows];
+      setInventoryText(inventoryToText(allRows));
+      setInventoryLoaded(true);
     } catch (err) {
       console.error("Chat: inventory load error", err);
       setInventoryText("Inventory data could not be loaded.");
-      setInventoryLoaded(make);
+      setInventoryLoaded(true);
     }
   }, []);
 
-  // Reload inventory when dealership changes
+  // Load inventory when chat opens
   useEffect(() => {
-    if (isOpen && inventoryLoaded !== selectedMake) {
-      loadInventoryForAI(selectedMake);
+    if (isOpen && !inventoryLoaded) {
+      loadAllInventory();
     }
-  }, [isOpen, selectedMake, inventoryLoaded, loadInventoryForAI]);
-
-  // Reset chat when dealership changes
-  useEffect(() => {
-    setMessages([]);
-    setInventoryLoaded(null);
-  }, [selectedMake]);
+  }, [isOpen, inventoryLoaded, loadAllInventory]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -103,8 +102,8 @@ export const ChatBubble: FC = () => {
 
   const handleOpen = () => {
     setIsOpen(true);
-    if (inventoryLoaded !== selectedMake) {
-      loadInventoryForAI(selectedMake);
+    if (!inventoryLoaded) {
+      loadAllInventory();
     }
   };
 
@@ -128,7 +127,7 @@ export const ChatBubble: FC = () => {
             content: m.content,
           })),
           inventory: inventoryText,
-          dealership: dealerLabel,
+          dealership: "Buick GMC & Chevrolet",
         }),
       });
 
@@ -251,8 +250,7 @@ export const ChatBubble: FC = () => {
                   }}
                 >
                   What type of vehicle are you looking for today? I can search
-                  our entire {dealerLabel} inventory to find the perfect match
-                  for you!
+                  both dealership inventories to find the perfect match for you!
                 </div>
               </div>
             )}
