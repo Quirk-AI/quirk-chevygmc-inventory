@@ -1,6 +1,6 @@
 // src/components/ChatBubble.tsx
 import { FC, useState, useRef, useEffect, useCallback } from "react";
-import { MessageCircle, X, Send, Loader2, ChevronDown } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, Search } from "lucide-react";
 import { useInventoryStore } from "../store/inventoryStore";
 import { DEALER_LABELS } from "../inventoryHelpers";
 import { INVENTORY_PATHS } from "../services/inventoryService";
@@ -181,7 +181,7 @@ export const ChatBubble: FC = () => {
     <>
       {/* Chat Window */}
       <div
-        className={`fixed bottom-20 right-4 sm:right-6 z-50 transition-all duration-300 ease-out ${
+        className={`fixed bottom-16 right-4 sm:right-6 z-50 transition-all duration-300 ease-out ${
           isOpen
             ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
             : "opacity-0 translate-y-4 scale-95 pointer-events-none"
@@ -210,7 +210,7 @@ export const ChatBubble: FC = () => {
               </div>
               <div>
                 <div className="text-white font-semibold text-sm leading-tight">
-                  Quirk {dealerLabel}
+                  Quirk Buick GMC & Chevrolet
                 </div>
                 <div className="text-white/70 text-xs">
                   Vehicle Search Assistant
@@ -392,34 +392,20 @@ export const ChatBubble: FC = () => {
         </div>
       </div>
 
-      {/* Floating Action Button */}
+      {/* Tap-to-search banner */}
       <button
         onClick={isOpen ? () => setIsOpen(false) : handleOpen}
-        className="fixed bottom-4 right-4 sm:right-6 z-50 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 group"
+        className="fixed bottom-4 right-4 sm:right-6 z-50 flex items-center gap-2.5 px-5 py-3 rounded-full shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
         style={{
           background:
             "linear-gradient(135deg, var(--chevy-blue, #0066B1), var(--chevy-blue-dark, #004d86))",
         }}
         aria-label={isOpen ? "Close chat" : "Open chat"}
       >
-        <div
-          className={`absolute transition-all duration-300 ${
-            isOpen ? "rotate-0 opacity-100" : "rotate-90 opacity-0"
-          }`}
-        >
-          <ChevronDown size={24} className="text-white" />
-        </div>
-        <div
-          className={`absolute transition-all duration-300 ${
-            isOpen ? "-rotate-90 opacity-0" : "rotate-0 opacity-100"
-          }`}
-        >
-          <MessageCircle size={24} className="text-white" />
-        </div>
-        {/* Pulse ring when closed */}
-        {!isOpen && (
-          <span className="absolute inset-0 rounded-full animate-ping opacity-20" style={{ background: "var(--chevy-blue, #0066B1)" }} />
-        )}
+        <Search size={18} className="text-white shrink-0" />
+        <span className="text-white text-sm font-medium whitespace-nowrap">
+          {isOpen ? "Close search assistant" : "Tap here to let me help you search"}
+        </span>
       </button>
     </>
   );
