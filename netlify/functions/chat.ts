@@ -1,7 +1,6 @@
 // netlify/functions/chat.ts
-import type { Handler, HandlerEvent } from "@netlify/functions";
 
-const handler: Handler = async (event: HandlerEvent) => {
+exports.handler = async (event: any) => {
   const headers = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
@@ -9,7 +8,6 @@ const handler: Handler = async (event: HandlerEvent) => {
     "Access-Control-Allow-Headers": "Content-Type",
   };
 
-  // CORS preflight
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers, body: "" };
   }
@@ -81,8 +79,8 @@ GUIDELINES:
     const data = await anthropicResponse.json();
     const reply =
       data.content
-        ?.filter((b: { type: string }) => b.type === "text")
-        .map((b: { text: string }) => b.text)
+        ?.filter((b: any) => b.type === "text")
+        .map((b: any) => b.text)
         .join("") || "I'm sorry, I couldn't generate a response.";
 
     return { statusCode: 200, headers, body: JSON.stringify({ reply }) };
@@ -91,5 +89,3 @@ GUIDELINES:
     return { statusCode: 500, headers, body: JSON.stringify({ error: "Internal server error" }) };
   }
 };
-
-export { handler };
